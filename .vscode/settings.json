@@ -18,5 +18,11 @@
                 "retrievePublickey": true
             }
         }
+    ],
+    "dbcode.history.enabled": true,
+    "dbcode.resultLocation": "below",
+    "jest.virtualFolders": [
+        {"name": "web", "rootPath": "src/frontend"},
+        {"name": "RxN", "rootPath": "src/frontend/reactNativeApp/src"}
     ]
 }

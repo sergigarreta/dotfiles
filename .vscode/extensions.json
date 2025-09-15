@@ -1,5 +1,6 @@
 {
     "recommendations": [
-        "dbcode.dbcode"
+        "dbcode.dbcode",
+        "orta.vscode-jest"
     ]
 }
