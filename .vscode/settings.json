@@ -1,4 +1,5 @@
 {
+    // DB Client
     "dbcode.connections": [
         {
             "connectionId": "uvuJTHdbxzAWixUDoW2bt",
@@ -21,6 +22,8 @@
     ],
     "dbcode.history.enabled": true,
     "dbcode.resultLocation": "below",
+
+    // React Testing
     "jest.virtualFolders": [
         {"name": "web", "rootPath": "src/frontend"},
         {"name": "RxN", "rootPath": "src/frontend/reactNativeApp/src"}
