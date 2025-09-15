@@ -1,0 +1,22 @@
+{
+    "dbcode.connections": [
+        {
+            "connectionId": "uvuJTHdbxzAWixUDoW2bt",
+            "name": "Local DB",
+            "driver": "mysql",
+            "connectionType": "host",
+            "host": "rover.local",
+            "port": 3307,
+            "ssl": false,
+            "username": "root",
+            "password": "rover-dev-root-db-password",
+            "savePassword": "yes",
+            "database": "roverdb",
+            "readOnly": false,
+            "connectionTimeout": 30,
+            "driverOptions": {
+                "retrievePublickey": true
+            }
+        }
+    ]
+}
