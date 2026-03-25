@@ -133,7 +133,7 @@
 # Enable Stripe integration client to make API calls to the Stripe test environment
 # This is useful for testing checkout flows locally
 # https://roverdotcom.atlassian.net/wiki/spaces/TECH/pages/647201928/Payments+Onboarding+Resources#Setup-and-Access
-ENABLE_STRIPE_INTEGRATION_CLIENT = True
+# ENABLE_STRIPE_INTEGRATION_CLIENT = True
 
-# Use Avalara sandbox client for tax calculations in development
-AVALARA_CLIENT = "sandbox"
+# # Use Avalara sandbox client for tax calculations in development
+# AVALARA_CLIENT = "sandbox"
