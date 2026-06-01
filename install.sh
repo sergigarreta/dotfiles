@@ -15,3 +15,11 @@ cp /workspaces/.codespaces/.persistedshare/dotfiles/personal.py /workspaces/web/
 echo "Setting up Stripe webhook environment..."
 echo 'export DC_PARAMS="--profile stripe"' >> ~/.bashrc
 source ~/.bashrc
+
+# Install caveman Claude plugin/skill
+echo "Installing caveman Claude plugin..."
+if [ ! -d "$HOME/.claude/plugins/cache/caveman" ]; then
+    curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.sh | bash
+else
+    echo "caveman plugin already installed, skipping."
+fi
