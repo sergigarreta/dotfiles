@@ -23,3 +23,13 @@ if [ ! -d "$HOME/.claude/plugins/cache/caveman" ]; then
 else
     echo "caveman plugin already installed, skipping."
 fi
+
+# Set default Claude Code model to Sonnet (merge, don't clobber other settings)
+echo "Setting default Claude model to sonnet..."
+mkdir -p ~/.claude
+CLAUDE_SETTINGS=~/.claude/settings.json
+if [ -f "$CLAUDE_SETTINGS" ]; then
+  jq '.model = "sonnet"' "$CLAUDE_SETTINGS" > "$CLAUDE_SETTINGS.tmp" && mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
+else
+  echo '{"model": "sonnet"}' > "$CLAUDE_SETTINGS"
+fi
