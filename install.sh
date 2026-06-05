@@ -33,3 +33,19 @@ if [ -f "$CLAUDE_SETTINGS" ]; then
 else
   echo '{"model": "sonnet"}' > "$CLAUDE_SETTINGS"
 fi
+
+# Set caveman default intensity to ultra
+# Read by the caveman SessionStart hook (caveman-config.js) before the 'full'
+# fallback. Config file is shell-independent and survives restarts.
+echo "Setting caveman default mode to ultra..."
+mkdir -p ~/.config/caveman
+echo '{"defaultMode": "ultra"}' > ~/.config/caveman/config.json
+
+# Install the Acceleration team Claude Code plugin
+echo "Installing team-acceleration Claude plugin..."
+if command -v claude >/dev/null 2>&1; then
+  claude plugin marketplace add roverdotcom/rover-claude-plugins || true
+  claude plugin install team-acceleration@rover-plugins || true
+else
+  echo "claude CLI not on PATH yet — skipping team-acceleration install." >&2
+fi
