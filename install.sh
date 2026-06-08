@@ -41,6 +41,11 @@ echo "Setting caveman default mode to ultra..."
 mkdir -p ~/.config/caveman
 echo '{"defaultMode": "ultra"}' > ~/.config/caveman/config.json
 
+# Install personal Claude Code skills (user-level, available in every codespace)
+echo "Installing personal Claude skills..."
+mkdir -p ~/.claude/skills
+cp -r /workspaces/.codespaces/.persistedshare/dotfiles/skills/. ~/.claude/skills/
+
 # Install the Acceleration team Claude Code plugin
 echo "Installing team-acceleration Claude plugin..."
 if command -v claude >/dev/null 2>&1; then
