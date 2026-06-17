@@ -25,13 +25,14 @@ else
 fi
 
 # Set default Claude Code model to Sonnet (merge, don't clobber other settings)
-echo "Setting default Claude model to sonnet..."
+# Also default all subagents to Sonnet via CLAUDE_CODE_SUBAGENT_MODEL env var.
+echo "Setting default Claude model + subagent model to sonnet..."
 mkdir -p ~/.claude
 CLAUDE_SETTINGS=~/.claude/settings.json
 if [ -f "$CLAUDE_SETTINGS" ]; then
-  jq '.model = "sonnet"' "$CLAUDE_SETTINGS" > "$CLAUDE_SETTINGS.tmp" && mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
+  jq '.model = "sonnet" | .env.CLAUDE_CODE_SUBAGENT_MODEL = "sonnet"' "$CLAUDE_SETTINGS" > "$CLAUDE_SETTINGS.tmp" && mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
 else
-  echo '{"model": "sonnet"}' > "$CLAUDE_SETTINGS"
+  echo '{"model": "sonnet", "env": {"CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"}}' > "$CLAUDE_SETTINGS"
 fi
 
 # Set caveman default intensity to ultra
