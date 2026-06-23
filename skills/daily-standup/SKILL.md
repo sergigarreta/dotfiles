@@ -1,7 +1,12 @@
 ---
 name: daily-standup
-description: "Prepare notes for the daily standup / daily scrum meeting. Gathers what *you* did on the last working day from Jira and GitHub: status changes on Jira tickets assigned to you, and open pull requests you authored or reviewed. Use this whenever the user asks to 'prep my standup', 'what did I do yesterday', 'daily meeting notes', 'standup prep', 'daily scrum', or any morning-status-recap request — even if they don't name Jira or GitHub explicitly. Defaults to the previous working day (Friday when run on a Monday) but the user can override the date."
-allowed-tools: Bash(date:*), Bash(gh:*), Bash(acli:*), Bash(.claude/skills/atlassian-cli/scripts/ensure-auth.sh:*)
+description: "Prepare notes for the daily standup / daily scrum meeting. Gathers what *you* did on the last working day from Jira and GitHub: status changes on Jira tickets assigned to you, and open pull requests you authored or reviewed. Defaults to the previous working day (Friday when run on a Monday) but the user can override the date."
+argument-hint: "[date]"
+arguments: date
+disable-model-invocation: true
+model: claude-sonnet-4-6
+effort: low
+allowed-tools: Bash(date:*), Bash(gh:*), Bash(acli:*), Bash(curl:*), Bash(python3:*), Bash(.claude/skills/atlassian-cli/scripts/ensure-auth.sh:*)
 ---
 
 # Daily Standup Prep
@@ -17,10 +22,11 @@ Standup recaps cover the previous working day. Most days that is yesterday, but
 on a **Monday** the previous working day is **Friday** — and the same logic
 handles weekends (skip back to the most recent weekday).
 
-If the user gave a date (e.g. "prep standup for June 3" or "...for last
-Thursday"), use that instead — their override always wins.
+If a date was passed as an argument it appears here as `$date` (e.g. "prep
+standup for June 3" or "...for last Thursday") — that override always wins. Use
+it as the reporting day and skip the computation below.
 
-Otherwise compute the most recent weekday strictly before today:
+Otherwise (`$date` empty) compute the most recent weekday strictly before today:
 
 ```bash
 d=1
