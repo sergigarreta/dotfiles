@@ -55,3 +55,18 @@ if command -v claude >/dev/null 2>&1; then
 else
   echo "claude CLI not on PATH yet — skipping team-acceleration install." >&2
 fi
+
+# Register the internal Google Workspace MCP server (personal, local scope).
+# Stored in ~/.claude.json under the /workspaces/web project — not the shared
+# repo .mcp.json. Auth is OAuth via browser on first use (run `claude` /mcp).
+echo "Registering google-workspace MCP server..."
+if command -v claude >/dev/null 2>&1; then
+  if claude mcp get google-workspace >/dev/null 2>&1; then
+    echo "google-workspace MCP already registered, skipping."
+  else
+    (cd /workspaces/web && claude mcp add --transport http google-workspace \
+      https://google-workspace-mcp.internal-tools.ext-svc.rover.com/mcp) || true
+  fi
+else
+  echo "claude CLI not on PATH yet — skipping google-workspace MCP registration." >&2
+fi
