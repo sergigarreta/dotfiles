@@ -42,10 +42,18 @@ echo "Setting caveman default mode to ultra..."
 mkdir -p ~/.config/caveman
 echo '{"defaultMode": "ultra"}' > ~/.config/caveman/config.json
 
-# Install personal Claude Code skills (user-level, available in every codespace)
-echo "Installing personal Claude skills..."
+# Install personal Claude Code skills (user-level, available in every codespace).
+# Symlink (not copy) so edits under ~/.claude/skills are live for Claude AND
+# tracked in this dotfiles repo. These are personal skills, not a plugin
+# marketplace, so nothing auto-updates or overwrites them.
+echo "Linking personal Claude skills..."
 mkdir -p ~/.claude/skills
-cp -r /workspaces/.codespaces/.persistedshare/dotfiles/skills/. ~/.claude/skills/
+for skill_dir in /workspaces/.codespaces/.persistedshare/dotfiles/skills/*/; do
+  name="$(basename "$skill_dir")"
+  target="$HOME/.claude/skills/$name"
+  rm -rf "$target"
+  ln -s "${skill_dir%/}" "$target"
+done
 
 # Install the Acceleration team Claude Code plugin
 echo "Installing team-acceleration Claude plugin..."
@@ -69,4 +77,33 @@ if command -v claude >/dev/null 2>&1; then
   fi
 else
   echo "claude CLI not on PATH yet — skipping google-workspace MCP registration." >&2
+fi
+
+# Register the on-demand "Claude dev setup" VSCode task WITHOUT committing to the
+# shared web repo. The actual work (freeze rover-plugins autoUpdate, add source
+# repos to the window) lives in setup-claude-dev.sh and only runs when the task
+# is actioned — not automatically per codespace. We write the task into the
+# tracked web/.vscode/tasks.json, then skip-worktree so git never reports it as
+# modified. (Trade-off: while skipped, upstream edits to tasks.json won't apply;
+# undo with: git update-index --no-skip-worktree .vscode/tasks.json)
+echo "Registering 'Claude dev setup' VSCode task..."
+WEB_TASKS=/workspaces/web/.vscode/tasks.json
+if [ -d /workspaces/web/.vscode ] && command -v jq >/dev/null 2>&1; then
+  # tasks.json ships as JSONC (comment header); strip // line-comments so jq can
+  # parse it (empty file -> {}), then add the task only if it isn't already
+  # present so re-running install.sh is idempotent and preserves other tasks.
+  { sed 's://.*$::' "$WEB_TASKS" 2>/dev/null || echo '{}'; } \
+    | jq 'if (.tasks // []) | any(.label == "Claude dev setup") then . else
+        {version: (.version // "2.0.0"),
+         tasks: ((.tasks // []) + [{
+           label: "Claude dev setup",
+           type: "shell",
+           command: "bash /workspaces/.codespaces/.persistedshare/dotfiles/setup-claude-dev.sh",
+           problemMatcher: [],
+           detail: "Surface dotfiles + rover-plugins repos in VSCode; freeze rover-plugins autoUpdate."
+         }])}
+      end' > "$WEB_TASKS.tmp" && mv "$WEB_TASKS.tmp" "$WEB_TASKS"
+  git -C /workspaces/web update-index --skip-worktree .vscode/tasks.json 2>/dev/null || true
+else
+  echo "web/.vscode or jq missing — skipping VSCode task registration." >&2
 fi
