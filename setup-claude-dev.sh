@@ -24,8 +24,7 @@ fi
 # Surface source repos as extra folders in the running VSCode window. Committing
 # in the dotfiles folder pushes to the personal dotfiles repo; the rover-plugins
 # folder is the marketplace clone (frozen above so edits stick). The wiki folder
-# is the research wiki repo — VSCode gives markdown preview and clickable links;
-# Obsidian's graph view needs a local clone on the Mac instead.
+# is the research wiki repo — VSCode gives markdown preview and clickable links.
 if command -v code >/dev/null 2>&1; then
   code --add "$DOTFILES" || true
   code --add "$ROVER_PLUGINS" || true

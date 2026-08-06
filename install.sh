@@ -51,8 +51,8 @@ for skill_dir in /workspaces/.codespaces/.persistedshare/dotfiles/skills/*/; do
 done
 
 # Set up the personal research wiki (Karpathy LLM Wiki pattern). It is a separate
-# private repo so it can also be opened as an Obsidian vault on the Mac; this
-# clone is the codespace-side copy.
+# private repo so it can also be cloned outside this codespace; this clone is the
+# codespace-side copy.
 #
 # Auth needs the WIKI_REPO_TOKEN Codespaces secret (fine-grained PAT on
 # sergigarreta/llm-wiki, Contents: read+write). The codespace's own GITHUB_TOKEN
