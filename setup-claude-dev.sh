@@ -10,6 +10,7 @@ set -e
 
 DOTFILES=/workspaces/.codespaces/.persistedshare/dotfiles
 ROVER_PLUGINS="$HOME/.claude/plugins/marketplaces/rover-plugins"
+WIKI=/workspaces/wiki
 
 # Freeze the rover-plugins marketplace so local edits survive. autoUpdate:true
 # pulls upstream and clobbers any change; false keeps the clone editable at the
@@ -22,11 +23,14 @@ fi
 
 # Surface source repos as extra folders in the running VSCode window. Committing
 # in the dotfiles folder pushes to the personal dotfiles repo; the rover-plugins
-# folder is the marketplace clone (frozen above so edits stick).
+# folder is the marketplace clone (frozen above so edits stick). The wiki folder
+# is the research wiki repo — VSCode gives markdown preview and clickable links;
+# Obsidian's graph view needs a local clone on the Mac instead.
 if command -v code >/dev/null 2>&1; then
   code --add "$DOTFILES" || true
   code --add "$ROVER_PLUGINS" || true
-  echo "Added dotfiles + rover-plugins to VSCode workspace."
+  [ -d "$WIKI" ] && code --add "$WIKI" || true
+  echo "Added dotfiles + rover-plugins + wiki to VSCode workspace."
 else
   echo "code CLI not on PATH — cannot add folders to VSCode." >&2
 fi

@@ -50,6 +50,62 @@ for skill_dir in /workspaces/.codespaces/.persistedshare/dotfiles/skills/*/; do
   ln -s "${skill_dir%/}" "$target"
 done
 
+# Set up the personal research wiki (Karpathy LLM Wiki pattern). It is a separate
+# private repo so it can also be opened as an Obsidian vault on the Mac; this
+# clone is the codespace-side copy.
+#
+# Auth needs the WIKI_REPO_TOKEN Codespaces secret (fine-grained PAT on
+# sergigarreta/llm-wiki, Contents: read+write). The codespace's own GITHUB_TOKEN
+# cannot reach personal repos — it is scoped to the roverdotcom repos listed in
+# web/.devcontainer/devcontainer.json.
+echo "Setting up research wiki..."
+WIKI=/workspaces/wiki
+# The credential helper reads the token from the environment at call time, so the
+# PAT is never written to .git/config or ~/.git-credentials. It must be set on the
+# URL-scoped key: ~/.gitconfig points credential.https://github.com.helper at
+# `gh auth git-credential`, and a URL-scoped helper always beats a generic one, so
+# setting plain credential.helper here would be silently ignored. The empty value
+# first resets the inherited helper list.
+WIKI_CRED_HELPER='!f() { echo username=x-access-token; echo "password=$WIKI_REPO_TOKEN"; }; f'
+if [ -z "${WIKI_REPO_TOKEN:-}" ]; then
+  echo "WIKI_REPO_TOKEN not set — skipping wiki setup. Add it at https://github.com/settings/codespaces and restart." >&2
+else
+  if [ ! -d "$WIKI/.git" ]; then
+    git -c credential.https://github.com.helper= \
+        -c credential.https://github.com.helper="$WIKI_CRED_HELPER" \
+        clone https://github.com/sergigarreta/llm-wiki "$WIKI" || \
+      echo "wiki clone failed — check the PAT's Contents permission." >&2
+  fi
+  if [ -d "$WIKI/.git" ]; then
+    git -C "$WIKI" config credential.https://github.com.helper ""
+    git -C "$WIKI" config --add credential.https://github.com.helper "$WIKI_CRED_HELPER"
+    git -C "$WIKI" pull --rebase --autostash --quiet || true
+
+    # Skill symlinked out of the wiki repo, so the procedures are versioned with
+    # the wiki they operate on.
+    rm -rf "$HOME/.claude/skills/llm-wiki"
+    ln -s "$WIKI/.claude/skills/llm-wiki" "$HOME/.claude/skills/llm-wiki"
+
+    # Load the wiki schema into every session in the web repo only.
+    # CLAUDE.local.md is already gitignored by web (.gitignore), so this leaves no
+    # diff in the shared repo. The import resolves outside the working directory,
+    # so Claude Code asks for approval the first time — accept it once.
+    if [ -d /workspaces/web ] && ! grep -q '@/workspaces/wiki/WIKI.md' /workspaces/web/CLAUDE.local.md 2>/dev/null; then
+      printf '# Personal\n\n@/workspaces/wiki/WIKI.md\n' >> /workspaces/web/CLAUDE.local.md
+    fi
+
+    # SessionStart pulls the wiki and reports its state; Stop commits and pushes
+    # any changes. Merged with jq so model/enabledPlugins/marketplaces survive,
+    # and filtered first so re-running install.sh does not duplicate the entries.
+    if command -v jq >/dev/null 2>&1; then
+      jq '.hooks.SessionStart = ((.hooks.SessionStart // []) | map(select(.hooks[0].command != "/workspaces/wiki/bin/wiki-session-start.sh")) + [{hooks:[{type:"command",command:"/workspaces/wiki/bin/wiki-session-start.sh"}]}])
+        | .hooks.Stop = ((.hooks.Stop // []) | map(select(.hooks[0].command != "/workspaces/wiki/bin/wiki-sync.sh")) + [{hooks:[{type:"command",command:"/workspaces/wiki/bin/wiki-sync.sh"}]}])' \
+        "$CLAUDE_SETTINGS" > "$CLAUDE_SETTINGS.tmp" && mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
+    fi
+    echo "Research wiki ready at $WIKI."
+  fi
+fi
+
 # Install the Acceleration team Claude Code plugin
 echo "Installing team-acceleration Claude plugin..."
 if command -v claude >/dev/null 2>&1; then
