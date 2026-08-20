@@ -7,6 +7,8 @@ set -e
 
 echo "Setting up Rover development environment..."
 
+DOTFILES_DIR=/workspaces/.codespaces/.persistedshare/dotfiles
+
 # Copy personal.py settings to the web project
 echo "Copying personal.py to web project..."
 cp /workspaces/.codespaces/.persistedshare/dotfiles/personal.py /workspaces/web/src/aplaceforrover/rover/settings/personal.py
@@ -104,6 +106,25 @@ else
     fi
     echo "Research wiki ready at $WIKI."
   fi
+fi
+
+# Make this dotfiles clone pushable. Codespaces clones it with the codespace's
+# own GITHUB_TOKEN, which is scoped to the roverdotcom repos in
+# web/.devcontainer/devcontainer.json and cannot write a personal repo, so
+# commits here fail to push without a PAT.
+#
+# Same pattern as the wiki above: the helper reads the token from the
+# environment at call time, so the PAT never lands in .git/config or
+# ~/.git-credentials, and it must go on the URL-scoped key because
+# ~/.gitconfig's URL-scoped `gh auth git-credential` helper beats a generic one.
+echo "Configuring dotfiles push auth..."
+DOTFILES_CRED_HELPER='!f() { echo username=x-access-token; echo "password=$DOTFILES_REPO_TOKEN"; }; f'
+if [ -z "${DOTFILES_REPO_TOKEN:-}" ]; then
+  echo "DOTFILES_REPO_TOKEN not set — dotfiles pushes will fail. Add it at https://github.com/settings/codespaces and restart." >&2
+else
+  git -C "$DOTFILES_DIR" config credential.https://github.com.helper ""
+  git -C "$DOTFILES_DIR" config --add credential.https://github.com.helper "$DOTFILES_CRED_HELPER"
+  echo "dotfiles repo ready to push at $DOTFILES_DIR."
 fi
 
 # Install the Acceleration team Claude Code plugin
