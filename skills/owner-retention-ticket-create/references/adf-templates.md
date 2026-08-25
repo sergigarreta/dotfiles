@@ -2,17 +2,19 @@
 
 Read this when you're about to build the `description` or `customfield_12103` (Acceptance Criteria) payload for `createJiraIssue` / `editJiraIssue`. The shapes here are what Jira actually accepts via the MCP tool; the markdown round-trip path is a trap (see the SmartLinks section in SKILL.md).
 
+This file gives the ADF *shapes*. The **amount** of content is governed by the minimalism rule in SKILL.md: a story description is a `Links` list plus one sentence. Nothing here licenses more.
+
 ## Contents
 
-- Description ADF — story/task layout (Links / Background / Development)
+- Description ADF — story/task/spike layout (Links + one sentence)
 - Description ADF — bug layout (Steps / Expected / Actual / Findings)
 - Acceptance Criteria ADF — `taskList`
 - Full `createJiraIssue` payload examples (story/task and bug)
 - Common ADF marks
 
-## Description ADF — story/task layout
+## Description ADF — story/task/spike layout
 
-Every cross-reference URL is an `inlineCard` node. Plain HTTPS in text doesn't auto-resolve.
+A `Links` heading, a `bulletList` of `inlineCard`s, then **one paragraph**. No `Background` heading, no `Development` section — see the minimalism rule in SKILL.md. Every cross-reference URL is an `inlineCard` node; plain HTTPS in text doesn't auto-resolve.
 
 ```jsonc
 {
@@ -50,7 +52,7 @@ Every cross-reference URL is an `inlineCard` node. Plain HTTPS in text doesn't a
                         {
                             "type": "paragraph",
                             "content": [
-                                { "type": "text", "text": "Design doc: " },
+                                { "type": "text", "text": "Spec: " },
                                 {
                                     "type": "inlineCard",
                                     "attrs": {
@@ -61,60 +63,32 @@ Every cross-reference URL is an `inlineCard` node. Plain HTTPS in text doesn't a
                         },
                     ],
                 },
-            ],
-        },
-
-        {
-            "type": "heading",
-            "attrs": { "level": 2 },
-            "content": [{ "type": "text", "text": "Background" }],
-        },
-        {
-            "type": "paragraph",
-            "content": [
-                { "type": "text", "text": "Short prose. Mention the epic " },
-                {
-                    "type": "inlineCard",
-                    "attrs": {
-                        "url": "https://roverdotcom.atlassian.net/browse/DEV-147289",
-                    },
-                },
-                { "type": "text", "text": " inline. Explain the why." },
-            ],
-        },
-
-        {
-            "type": "heading",
-            "attrs": { "level": 2 },
-            "content": [{ "type": "text", "text": "Development" }],
-        },
-        {
-            "type": "orderedList",
-            "content": [
                 {
                     "type": "listItem",
                     "content": [
                         {
                             "type": "paragraph",
                             "content": [
-                                { "type": "text", "text": "Step 1: touch " },
+                                { "type": "text", "text": "Design: " },
                                 {
-                                    "type": "text",
-                                    "text": "src/frontend/.../File.tsx",
-                                    "marks": [{ "type": "code" }],
+                                    "type": "inlineCard",
+                                    "attrs": {
+                                        "url": "https://www.figma.com/design/.../Name?node-id=123-456",
+                                    },
                                 },
                             ],
                         },
                     ],
                 },
+            ],
+        },
+
+        {
+            "type": "paragraph",
+            "content": [
                 {
-                    "type": "listItem",
-                    "content": [
-                        {
-                            "type": "paragraph",
-                            "content": [{ "type": "text", "text": "Step 2: ..." }],
-                        },
-                    ],
+                    "type": "text",
+                    "text": "One sentence stating the change. Present tense.",
                 },
             ],
         },
@@ -122,9 +96,11 @@ Every cross-reference URL is an `inlineCard` node. Plain HTTPS in text doesn't a
 }
 ```
 
+If a file path genuinely disambiguates the one sentence, inline it with a `code` mark — but a path list is not a substitute for a sentence, and never becomes a `Development` section.
+
 ## Description ADF — bug layout
 
-Same node types, different headings: `Steps to Reproduce`, `Expected Result`, `Actual Result`, `Technical Findings` (optional), `Evidence / Links` (optional). Use `orderedList` for the steps and `inlineCard` for Slack threads, Zendesk tickets, Sentry issues, admin URLs, Figma frames.
+Same node types, different headings: `Steps to Reproduce`, `Expected Result`, `Actual Result`, `Technical Findings` (only when you have a real suspected cause). Use `orderedList` for the steps and `inlineCard` for Slack threads, Zendesk tickets, Sentry issues, admin URLs, Figma frames.
 
 Skeleton:
 
@@ -147,7 +123,7 @@ Skeleton:
 
 ## Acceptance Criteria ADF — `taskList`
 
-Goes in `customfield_12103`. Send with `contentFormat: "adf"`. Plain markdown errors with `Operation value must be an Atlassian Document`.
+Goes in `customfield_12103`. **1-3 items.** Send with `contentFormat: "adf"`. Plain markdown errors with `Operation value must be an Atlassian Document`.
 
 ```jsonc
 {
@@ -190,8 +166,8 @@ Give every `taskItem` a unique `localId`. `state` is `TODO` or `DONE`.
     "components": [{ "id": "17596" }],
     "customfield_11400": "ec63b0dd-b1fc-47c0-a646-56363181aaf2",
     "customfield_10008": "DEV-147289",
-    "description": { /* ADF doc — story/task layout */ },
-    "customfield_12103": { /* ADF doc with taskList */ },
+    "description": { /* ADF doc — Links + one sentence */ },
+    "customfield_12103": { /* ADF doc with taskList — 1-3 items */ },
 }
 ```
 
