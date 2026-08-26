@@ -1,0 +1,17 @@
+{
+  "model": "sonnet",
+  "env": {
+    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(m generate_api_schemas:*)",
+      "Bash(m makemessages:*)",
+      "Bash(./bin/makemessages.sh:*)",
+      "Bash(bin/makemessages.sh:*)",
+      "Bash(./bin/remote-makemessages.sh:*)",
+      "Bash(bin/remote-makemessages.sh:*)",
+      "Bash(pnpm build:apiClient:*)"
+    ]
+  }
+}

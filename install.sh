@@ -13,52 +13,12 @@ DOTFILES_DIR=/workspaces/.codespaces/.persistedshare/dotfiles
 echo "Copying personal.py to web project..."
 cp /workspaces/.codespaces/.persistedshare/dotfiles/personal.py /workspaces/web/src/aplaceforrover/rover/settings/personal.py
 
-# Install caveman Claude plugin/skill
-echo "Installing caveman Claude plugin..."
-if [ ! -d "$HOME/.claude/plugins/cache/caveman" ]; then
-    curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.sh | bash
-else
-    echo "caveman plugin already installed, skipping."
-fi
-
-# Set default Claude Code model to Sonnet (merge, don't clobber other settings)
-# Also default all subagents to Sonnet via CLAUDE_CODE_SUBAGENT_MODEL env var,
-# and pre-approve commands that are safe to run unattended so Claude stops
-# asking. Rules match the literal Bash command string; `:*` allows any trailing
-# args. Add a command here rather than re-approving it in every codespace.
-echo "Setting default Claude model + subagent model to sonnet..."
-mkdir -p ~/.claude
-CLAUDE_SETTINGS=~/.claude/settings.json
-ALWAYS_ALLOW='[
-  "Bash(m generate_api_schemas:*)",
-  "Bash(m makemessages:*)"
-]'
-[ -f "$CLAUDE_SETTINGS" ] || echo '{}' > "$CLAUDE_SETTINGS"
-jq --argjson allow "$ALWAYS_ALLOW" '
-  .model = "sonnet"
-  | .env.CLAUDE_CODE_SUBAGENT_MODEL = "sonnet"
-  | .permissions.allow = ((.permissions.allow // []) + $allow | unique)
-' "$CLAUDE_SETTINGS" > "$CLAUDE_SETTINGS.tmp" && mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
-
-# Set caveman default intensity to ultra
-# Read by the caveman SessionStart hook (caveman-config.js) before the 'full'
-# fallback. Config file is shell-independent and survives restarts.
-echo "Setting caveman default mode to ultra..."
-mkdir -p ~/.config/caveman
-echo '{"defaultMode": "ultra"}' > ~/.config/caveman/config.json
-
-# Install personal Claude Code skills (user-level, available in every codespace).
-# Symlink (not copy) so edits under ~/.claude/skills are live for Claude AND
-# tracked in this dotfiles repo. These are personal skills, not a plugin
-# marketplace, so nothing auto-updates or overwrites them.
-echo "Linking personal Claude skills..."
-mkdir -p ~/.claude/skills
-for skill_dir in /workspaces/.codespaces/.persistedshare/dotfiles/skills/*/; do
-  name="$(basename "$skill_dir")"
-  target="$HOME/.claude/skills/$name"
-  rm -rf "$target"
-  ln -s "${skill_dir%/}" "$target"
-done
+# Claude Code setup — settings, plugins, skills, MCP servers. Split out so the
+# config that changes often lives in one place: claude/settings.json is the
+# declarative part, claude/install.sh applies it. Must run before the wiki block,
+# which merges its hooks into the settings file this creates.
+echo "Setting up Claude Code..."
+bash "$DOTFILES_DIR/claude/install.sh"
 
 # Set up the personal research wiki (Karpathy LLM Wiki pattern). It is a separate
 # private repo so it can also be cloned outside this codespace; this clone is the
@@ -70,6 +30,7 @@ done
 # web/.devcontainer/devcontainer.json.
 echo "Setting up research wiki..."
 WIKI=/workspaces/wiki
+CLAUDE_SETTINGS=~/.claude/settings.json
 # The credential helper reads the token from the environment at call time, so the
 # PAT is never written to .git/config or ~/.git-credentials. It must be set on the
 # URL-scoped key: ~/.gitconfig points credential.https://github.com.helper at
@@ -133,30 +94,6 @@ else
   git -C "$DOTFILES_DIR" config credential.https://github.com.helper ""
   git -C "$DOTFILES_DIR" config --add credential.https://github.com.helper "$DOTFILES_CRED_HELPER"
   echo "dotfiles repo ready to push at $DOTFILES_DIR."
-fi
-
-# Install the Acceleration team Claude Code plugin
-echo "Installing team-acceleration Claude plugin..."
-if command -v claude >/dev/null 2>&1; then
-  claude plugin marketplace add roverdotcom/rover-claude-plugins || true
-  claude plugin install team-acceleration@rover-plugins || true
-else
-  echo "claude CLI not on PATH yet — skipping team-acceleration install." >&2
-fi
-
-# Register the internal Google Workspace MCP server (personal, local scope).
-# Stored in ~/.claude.json under the /workspaces/web project — not the shared
-# repo .mcp.json. Auth is OAuth via browser on first use (run `claude` /mcp).
-echo "Registering google-workspace MCP server..."
-if command -v claude >/dev/null 2>&1; then
-  if claude mcp get google-workspace >/dev/null 2>&1; then
-    echo "google-workspace MCP already registered, skipping."
-  else
-    (cd /workspaces/web && claude mcp add --transport http google-workspace \
-      https://google-workspace-mcp.internal-tools.ext-svc.rover.com/mcp) || true
-  fi
-else
-  echo "claude CLI not on PATH yet — skipping google-workspace MCP registration." >&2
 fi
 
 # Register the on-demand "Claude dev setup" VSCode task WITHOUT committing to the
