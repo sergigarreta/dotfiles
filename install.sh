@@ -22,15 +22,22 @@ else
 fi
 
 # Set default Claude Code model to Sonnet (merge, don't clobber other settings)
-# Also default all subagents to Sonnet via CLAUDE_CODE_SUBAGENT_MODEL env var.
+# Also default all subagents to Sonnet via CLAUDE_CODE_SUBAGENT_MODEL env var,
+# and pre-approve commands that are safe to run unattended so Claude stops
+# asking. Rules match the literal Bash command string; `:*` allows any trailing
+# args. Add a command here rather than re-approving it in every codespace.
 echo "Setting default Claude model + subagent model to sonnet..."
 mkdir -p ~/.claude
 CLAUDE_SETTINGS=~/.claude/settings.json
-if [ -f "$CLAUDE_SETTINGS" ]; then
-  jq '.model = "sonnet" | .env.CLAUDE_CODE_SUBAGENT_MODEL = "sonnet"' "$CLAUDE_SETTINGS" > "$CLAUDE_SETTINGS.tmp" && mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
-else
-  echo '{"model": "sonnet", "env": {"CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"}}' > "$CLAUDE_SETTINGS"
-fi
+ALWAYS_ALLOW='[
+  "Bash(m generate_api_schemas:*)"
+]'
+[ -f "$CLAUDE_SETTINGS" ] || echo '{}' > "$CLAUDE_SETTINGS"
+jq --argjson allow "$ALWAYS_ALLOW" '
+  .model = "sonnet"
+  | .env.CLAUDE_CODE_SUBAGENT_MODEL = "sonnet"
+  | .permissions.allow = ((.permissions.allow // []) + $allow | unique)
+' "$CLAUDE_SETTINGS" > "$CLAUDE_SETTINGS.tmp" && mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
 
 # Set caveman default intensity to ultra
 # Read by the caveman SessionStart hook (caveman-config.js) before the 'full'

@@ -57,6 +57,10 @@ Newly added or edited skills are picked up on the next Claude Code session.
 
 ## Committing and pushing (uses DOTFILES_REPO_TOKEN)
 
+Every change to this repo ends here. Editing a file is half the job — the repo is
+the only thing that persists across codespaces, so commit and push before
+reporting the work done.
+
 `DOTFILES_REPO_TOKEN` is a fine-grained GitHub PAT (Contents: read+write on
 `sergigarreta/dotfiles`), delivered as a Codespaces secret. The codespace's own
 `GITHUB_TOKEN` is scoped to roverdotcom repos and **cannot** push here.
@@ -127,6 +131,9 @@ git -C "$DOTFILES" push
 
 - Small, focused commits with an imperative subject line; no PR needed — commit
   straight to `main` and push.
-- Ask before pushing unless the user already said to.
+- **Always commit and push as part of the task** — an edit left in the working
+  tree does not survive a codespace rebuild, so an uncommitted change has not
+  been delivered. Do not ask first, and do not stop at "edited, want me to
+  push?"; finish the edit, commit it, push it, and report the pushed SHA.
 - `git -C "$DOTFILES" pull --rebase --autostash` before pushing if the remote has
   moved (another codespace may have pushed).
