@@ -30,7 +30,8 @@ echo "Setting default Claude model + subagent model to sonnet..."
 mkdir -p ~/.claude
 CLAUDE_SETTINGS=~/.claude/settings.json
 ALWAYS_ALLOW='[
-  "Bash(m generate_api_schemas:*)"
+  "Bash(m generate_api_schemas:*)",
+  "Bash(m makemessages:*)"
 ]'
 [ -f "$CLAUDE_SETTINGS" ] || echo '{}' > "$CLAUDE_SETTINGS"
 jq --argjson allow "$ALWAYS_ALLOW" '
