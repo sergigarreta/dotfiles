@@ -124,3 +124,27 @@ if [ -d /workspaces/web/.vscode ] && command -v jq >/dev/null 2>&1; then
 else
   echo "web/.vscode or jq missing — skipping VSCode task registration." >&2
 fi
+
+# Apply vscode/machine-settings.json to the VSCode Machine settings, which cover
+# every folder in the codespace — a repo .vscode/settings.json would only cover
+# that folder, and web's is tracked. Codespaces writes this file itself (feature
+# blurbs, port labels), so deep-merge with the same jq script the Claude settings
+# use rather than overwriting. The data dir name differs across VSCode clients,
+# hence the loop.
+echo "Applying VSCode machine settings..."
+if command -v jq >/dev/null 2>&1; then
+  for VSCODE_DATA in ~/.vscode-remote/data/Machine ~/.vscode-server/data/Machine; do
+    [ -d "$VSCODE_DATA" ] || continue
+    VSCODE_SETTINGS="$VSCODE_DATA/settings.json"
+    [ -s "$VSCODE_SETTINGS" ] || echo '{}' > "$VSCODE_SETTINGS"
+    # A hand-added // comment makes the file JSONC, which jq cannot parse; leave
+    # it untouched in that case rather than clobbering it.
+    jq -s -f "$DOTFILES_DIR/claude/merge-settings.jq" \
+      "$VSCODE_SETTINGS" "$DOTFILES_DIR/vscode/machine-settings.json" \
+      > "$VSCODE_SETTINGS.tmp" \
+      && mv "$VSCODE_SETTINGS.tmp" "$VSCODE_SETTINGS" \
+      || { rm -f "$VSCODE_SETTINGS.tmp"; echo "could not parse $VSCODE_SETTINGS — skipped." >&2; }
+  done
+else
+  echo "jq missing — skipping VSCode machine settings." >&2
+fi
