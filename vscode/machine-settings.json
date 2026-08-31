@@ -1,3 +1,8 @@
 {
-  "git.detectWorktrees": true
+  "git.detectWorktrees": true,
+  "git.scanRepositories": [
+    "/workspaces/.codespaces/.persistedshare/dotfiles",
+    "/workspaces/wiki",
+    "/home/codespace/.claude/plugins/marketplaces/rover-plugins"
+  ]
 }
