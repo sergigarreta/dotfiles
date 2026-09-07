@@ -32,6 +32,14 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# Keybindings (~/.claude/keybindings.json)
+# ---------------------------------------------------------------------------
+# Copied wholesale: nothing else writes this file, and Claude Code has no UI for
+# editing keybindings, so there is no external state to preserve.
+echo "Applying Claude keybindings from claude/keybindings.json..."
+cp "$CLAUDE_DIR/keybindings.json" ~/.claude/keybindings.json
+
+# ---------------------------------------------------------------------------
 # Personal skills
 # ---------------------------------------------------------------------------
 # Symlink (not copy) so edits under ~/.claude/skills are live for Claude AND
