@@ -107,19 +107,18 @@ echo "Registering 'Claude dev setup' VSCode task..."
 WEB_TASKS=/workspaces/web/.vscode/tasks.json
 if [ -d /workspaces/web/.vscode ] && command -v jq >/dev/null 2>&1; then
   # tasks.json ships as JSONC (comment header); strip // line-comments so jq can
-  # parse it (empty file -> {}), then add the task only if it isn't already
-  # present so re-running install.sh is idempotent and preserves other tasks.
+  # parse it (empty file -> {}), then drop any previous copy of the task before
+  # appending the current one — idempotent, preserves other tasks, and refreshes
+  # the definition when it changes here (skipping on label would freeze it).
   { sed 's://.*$::' "$WEB_TASKS" 2>/dev/null || echo '{}'; } \
-    | jq 'if (.tasks // []) | any(.label == "Claude dev setup") then . else
-        {version: (.version // "2.0.0"),
-         tasks: ((.tasks // []) + [{
-           label: "Claude dev setup",
-           type: "shell",
-           command: "bash /workspaces/.codespaces/.persistedshare/dotfiles/setup-claude-dev.sh",
-           problemMatcher: [],
-           detail: "Surface dotfiles + rover-plugins repos in VSCode; freeze rover-plugins autoUpdate."
-         }])}
-      end' > "$WEB_TASKS.tmp" && mv "$WEB_TASKS.tmp" "$WEB_TASKS"
+    | jq '{version: (.version // "2.0.0"),
+           tasks: (((.tasks // []) | map(select(.label != "Claude dev setup"))) + [{
+             label: "Claude dev setup",
+             type: "shell",
+             command: "bash /workspaces/.codespaces/.persistedshare/dotfiles/setup-claude-dev.sh",
+             problemMatcher: [],
+             detail: "Surface dotfiles + rover-plugins + wiki repos in VSCode; freeze rover-plugins autoUpdate."
+           }])}' > "$WEB_TASKS.tmp" && mv "$WEB_TASKS.tmp" "$WEB_TASKS"
   git -C /workspaces/web update-index --skip-worktree .vscode/tasks.json 2>/dev/null || true
 else
   echo "web/.vscode or jq missing — skipping VSCode task registration." >&2
