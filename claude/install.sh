@@ -71,12 +71,14 @@ echo "Setting caveman default mode to ultra..."
 mkdir -p ~/.config/caveman
 echo '{"defaultMode": "ultra"}' > ~/.config/caveman/config.json
 
-echo "Installing team-acceleration Claude plugin..."
+# Marketplace only, no plugin installed from it by default — setup-claude-dev.sh
+# and the VSCode workspace expect the clone at
+# ~/.claude/plugins/marketplaces/rover-plugins to exist.
+echo "Registering rover-plugins Claude plugin marketplace..."
 if command -v claude >/dev/null 2>&1; then
   claude plugin marketplace add roverdotcom/rover-claude-plugins || true
-  claude plugin install team-acceleration@rover-plugins || true
 else
-  echo "claude CLI not on PATH yet — skipping team-acceleration install." >&2
+  echo "claude CLI not on PATH yet — skipping rover-plugins marketplace." >&2
 fi
 
 # ---------------------------------------------------------------------------
