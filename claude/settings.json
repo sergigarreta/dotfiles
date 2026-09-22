@@ -4,6 +4,9 @@
   "env": {
     "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
   },
+  "enabledPlugins": {
+    "owner-retention@rover-plugins": true
+  },
   "permissions": {
     "allow": [
       "Bash(m generate_api_schemas:*)",
