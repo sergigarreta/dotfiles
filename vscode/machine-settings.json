@@ -4,5 +4,8 @@
     "/workspaces/.codespaces/.persistedshare/dotfiles",
     "/workspaces/wiki",
     "/home/codespace/.claude/plugins/marketplaces/rover-plugins"
-  ]
+  ],
+  "workbench.editorAssociations": {
+    "*.md": "vscode.markdown.preview.editor"
+  }
 }
