@@ -5,7 +5,8 @@
     "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
   },
   "enabledPlugins": {
-    "owner-retention@rover-plugins": true
+    "owner-retention@rover-plugins": true,
+    "ci-self-iteration@rover-plugins": true
   },
   "permissions": {
     "allow": [
