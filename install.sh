@@ -96,6 +96,9 @@ else
   echo "dotfiles repo ready to push at $DOTFILES_DIR."
 fi
 
+echo "Registering codespace in Statsig segment..."
+bash "$DOTFILES_DIR/statsig-register-codespace.sh" || true
+
 # Register the on-demand "Claude dev setup" VSCode task WITHOUT committing to the
 # shared web repo. The actual work (freeze rover-plugins autoUpdate, add source
 # repos to the window) lives in setup-claude-dev.sh and only runs when the task
