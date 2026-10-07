@@ -17,6 +17,7 @@ allowed-tools: Bash(git:*), Bash(ls:*), Bash(cat:*), Bash(mkdir:*), Bash(ln:*), 
 | `claude/install.sh` | applies the settings fragment, links skills, installs plugins, registers MCP servers |
 | `personal.py` | Django settings copied into `web/src/aplaceforrover/rover/settings/personal.py` |
 | `setup-claude-dev.sh` | on-demand VSCode task (surface dotfiles + rover-plugins repos) |
+| `statsig-register-codespace.sh` | run by `install.sh`; adds `$CODESPACE_NAME` to the Statsig segment `sergi_garreta_codespaces` via the Console API |
 | `skills/<name>/SKILL.md` | personal Claude skills, symlinked to `~/.claude/skills/<name>` by `claude/install.sh` |
 
 `~/.claude/skills/<name>` are **symlinks into this repo**, so editing either path
@@ -127,6 +128,8 @@ git -C "$DOTFILES" push
   `git -C "$DOTFILES" remote -v | sed -E 's#https://[^@]*@#https://***@#'`
 - Never copy the token into another repo, a script, an MCP call, a Jira ticket,
   or a PR body.
+- The same rules apply to `STATSIG_CONSOLE_API_KEY`, the Statsig Console API key
+  used by `statsig-register-codespace.sh`. It can edit the whole Statsig project.
 
 ### If the push fails
 
