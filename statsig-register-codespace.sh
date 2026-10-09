@@ -4,7 +4,7 @@
 # gates targeted at that segment pass here. The backend sends the name as the
 # `environment_id` custom ID (settings.MACHINE_NAME falls back to CODESPACE_NAME).
 #
-# Auth needs the STATSIG_CONSOLE_API_KEY Codespaces secret (a Console API key
+# Auth needs the SERGI_STATSIG_CONSOLE_API_KEY Codespaces secret (a Console API key
 # with write access). It can edit the whole Statsig project, so it is only ever
 # read into a curl header through process substitution: never echoed, logged,
 # put on a command line, or written to a file.
@@ -20,14 +20,14 @@ if [ -z "${CODESPACES:-}" ] || [ -z "${CODESPACE_NAME:-}" ]; then
   echo "Not in a codespace — skipping Statsig segment registration." >&2
   exit 0
 fi
-if [ -z "${STATSIG_CONSOLE_API_KEY:-}" ]; then
-  echo "STATSIG_CONSOLE_API_KEY not set — skipping Statsig segment registration. Add it at https://github.com/settings/codespaces and restart." >&2
+if [ -z "${SERGI_STATSIG_CONSOLE_API_KEY:-}" ]; then
+  echo "SERGI_STATSIG_CONSOLE_API_KEY not set — skipping Statsig segment registration. Add it at https://github.com/settings/codespaces and restart." >&2
   exit 0
 fi
 
 statsig() {
   curl -fsS --max-time 20 \
-    -H @<(printf 'STATSIG-API-KEY: %s\n' "$STATSIG_CONSOLE_API_KEY") \
+    -H @<(printf 'STATSIG-API-KEY: %s\n' "$SERGI_STATSIG_CONSOLE_API_KEY") \
     -H 'STATSIG-API-VERSION: 20240601' \
     -H 'Content-Type: application/json' \
     "$@"
