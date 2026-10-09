@@ -128,7 +128,7 @@ git -C "$DOTFILES" push
   `git -C "$DOTFILES" remote -v | sed -E 's#https://[^@]*@#https://***@#'`
 - Never copy the token into another repo, a script, an MCP call, a Jira ticket,
   or a PR body.
-- The same rules apply to `STATSIG_CONSOLE_API_KEY`, the Statsig Console API key
+- The same rules apply to `SERGI_STATSIG_CONSOLE_API_KEY`, the Statsig Console API key
   used by `statsig-register-codespace.sh`. It can edit the whole Statsig project.
 
 ### If the push fails
