@@ -99,28 +99,36 @@ fi
 echo "Registering codespace in Statsig segment..."
 bash "$DOTFILES_DIR/statsig-register-codespace.sh" || true
 
-# Register the on-demand "Claude dev setup" VSCode task WITHOUT committing to the
-# shared web repo. The actual work (freeze rover-plugins autoUpdate, add source
-# repos to the window) lives in setup-claude-dev.sh and only runs when the task
-# is actioned — not automatically per codespace. We write the task into the
+# Register the on-demand VSCode tasks WITHOUT committing to the
+# shared web repo. "Claude dev setup" runs setup-claude-dev.sh (freeze
+# rover-plugins autoUpdate, add source repos to the window); "Transfer Claude
+# sessions" runs DevEx's `rover-cli codespace claude-transfer` from the old
+# codespace into a new one. Neither runs automatically per codespace. We write the task into the
 # tracked web/.vscode/tasks.json, then skip-worktree so git never reports it as
 # modified. (Trade-off: while skipped, upstream edits to tasks.json won't apply;
 # undo with: git update-index --no-skip-worktree .vscode/tasks.json)
-echo "Registering 'Claude dev setup' VSCode task..."
+echo "Registering VSCode tasks..."
 WEB_TASKS=/workspaces/web/.vscode/tasks.json
 if [ -d /workspaces/web/.vscode ] && command -v jq >/dev/null 2>&1; then
   # tasks.json ships as JSONC (comment header); strip // line-comments so jq can
-  # parse it (empty file -> {}), then drop any previous copy of the task before
-  # appending the current one — idempotent, preserves other tasks, and refreshes
+  # parse it (empty file -> {}), then drop any previous copy of these tasks before
+  # appending the current ones — idempotent, preserves other tasks, and refreshes
   # the definition when it changes here (skipping on label would freeze it).
   { sed 's://.*$::' "$WEB_TASKS" 2>/dev/null || echo '{}'; } \
     | jq '{version: (.version // "2.0.0"),
-           tasks: (((.tasks // []) | map(select(.label != "Claude dev setup"))) + [{
+           tasks: (((.tasks // []) | map(select(.label | IN("Claude dev setup", "Transfer Claude sessions") | not))) + [{
              label: "Claude dev setup",
              type: "shell",
              command: "bash /workspaces/.codespaces/.persistedshare/dotfiles/setup-claude-dev.sh",
              problemMatcher: [],
              detail: "Surface dotfiles + rover-plugins + wiki repos in VSCode; freeze rover-plugins autoUpdate."
+           }, {
+             label: "Transfer Claude sessions",
+             type: "shell",
+             command: "/workspaces/web/dev-env/cli/rover-cli codespace claude-transfer",
+             problemMatcher: [],
+             presentation: {focus: true},
+             detail: "Copy this codespace'"'"'s Claude sessions, memory and settings.json to another codespace (pick from list)."
            }])}' > "$WEB_TASKS.tmp" && mv "$WEB_TASKS.tmp" "$WEB_TASKS"
   git -C /workspaces/web update-index --skip-worktree .vscode/tasks.json 2>/dev/null || true
 else
