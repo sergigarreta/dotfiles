@@ -129,7 +129,8 @@ git -C "$DOTFILES" push
 - Never copy the token into another repo, a script, an MCP call, a Jira ticket,
   or a PR body.
 - The same rules apply to `SERGI_STATSIG_CONSOLE_API_KEY`, the Statsig Console API key
-  used by `statsig-register-codespace.sh`. It can edit the whole Statsig project.
+  used by `statsig-register-codespace.sh`. It can edit the whole Statsig project;
+  the `statsig-key-usage` skill limits what it may be used for.
 
 ### If the push fails
 
