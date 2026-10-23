@@ -101,4 +101,18 @@ else
   echo "claude CLI not on PATH yet — skipping google-workspace MCP registration." >&2
 fi
 
+# Amplitude MCP, user scope. The repo's web gateway portal doesn't include
+# Amplitude, so it's registered against its dedicated portal. Auth via /mcp.
+echo "Registering amplitude MCP server..."
+if command -v claude >/dev/null 2>&1; then
+  if claude mcp get amplitude >/dev/null 2>&1; then
+    echo "amplitude MCP already registered, skipping."
+  else
+    claude mcp add amplitude -s user --transport http \
+      https://amplitude.mcp-portal.dev-tools.roversvc.com/mcp || true
+  fi
+else
+  echo "claude CLI not on PATH yet — skipping amplitude MCP registration." >&2
+fi
+
 echo "Claude setup done."
