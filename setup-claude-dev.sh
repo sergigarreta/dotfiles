@@ -47,6 +47,13 @@ else
   echo "$WIKI is not cloned — install.sh only clones it when WIKI_REPO_TOKEN is set." >&2
 fi
 
+# tfalerts is cloned by hand: the codespace GITHUB_TOKEN only covers web.
+TFALERTS=/workspaces/tfalerts
+if [ -d "$TFALERTS" ]; then
+  FOLDERS="$FOLDERS $TFALERTS"
+  ADDED="$ADDED + tfalerts"
+fi
+
 # Surface source repos as extra folders in the running VSCode window. Committing
 # in the dotfiles folder pushes to the personal dotfiles repo; the rover-plugins
 # folder is the marketplace clone (frozen above so edits stick). The wiki folder
