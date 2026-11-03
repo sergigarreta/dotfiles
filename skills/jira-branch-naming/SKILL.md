@@ -57,5 +57,5 @@ key.
 ## Related
 
 Creating or checking out a ticket's branch is a "work starts" moment for
-`owner-retention-ticket-lifecycle` — assign the ticket and move it to
+`owner-retention:ticket-lifecycle` — assign the ticket and move it to
 In Progress at the same time.
