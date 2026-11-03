@@ -71,12 +71,19 @@ echo "Setting caveman default mode to ultra..."
 mkdir -p ~/.config/caveman
 echo '{"defaultMode": "ultra"}' > ~/.config/caveman/config.json
 
-# Marketplace only, no plugin installed from it by default — setup-claude-dev.sh
-# and the VSCode workspace expect the clone at
-# ~/.claude/plugins/marketplaces/rover-plugins to exist.
+# setup-claude-dev.sh and the VSCode workspace expect the clone at
+# ~/.claude/plugins/marketplaces/rover-plugins to exist. enabledPlugins in
+# settings.json only enables a plugin; it does not install it, so install here.
 echo "Registering rover-plugins Claude plugin marketplace..."
 if command -v claude >/dev/null 2>&1; then
   claude plugin marketplace add roverdotcom/rover-claude-plugins || true
+  for plugin in ci-self-iteration owner-retention; do
+    if claude plugin list 2>/dev/null | grep -q "$plugin@rover-plugins"; then
+      echo "$plugin plugin already installed, skipping."
+    else
+      claude plugin install "$plugin@rover-plugins" --scope user || true
+    fi
+  done
 else
   echo "claude CLI not on PATH yet — skipping rover-plugins marketplace." >&2
 fi
