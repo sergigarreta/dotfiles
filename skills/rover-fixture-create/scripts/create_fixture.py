@@ -106,7 +106,8 @@ def resolve_base_url(value):
     if value.startswith(("http://", "https://")):
         return value.rstrip("/")
     if value == "local":
-        return "http://localhost:8000"
+        # The miniflare edge proxy; Django on :8000 alone 404s the /static/dist bundles.
+        return "http://rover.local:8001"
     if value.startswith("staging-"):
         return "https://{}.webapp.roverstaging.com".format(value)
     raise SystemExit(
@@ -205,9 +206,7 @@ def _extract_pk(base_url, payload, entrypoint_name):
             )
         return _resolve_pk(base_url, impersonate)
 
-    raise RuntimeError(
-        "no entrypoint named {!r} in the response".format(entrypoint_name)
-    )
+    raise RuntimeError("no entrypoint named {!r} in the response".format(entrypoint_name))
 
 
 def _resolve_pk(base_url, impersonate_url):
