@@ -6,7 +6,9 @@
   },
   "enabledPlugins": {
     "ci-self-iteration@rover-plugins": true,
-    "owner-retention@rover-plugins": true
+    "owner-retention@rover-plugins": true,
+    "analyze-this@rover-plugins": true,
+    "rover-mode@rover-plugins": true
   },
   "permissions": {
     "allow": [
