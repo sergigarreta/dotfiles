@@ -77,7 +77,7 @@ echo '{"defaultMode": "ultra"}' > ~/.config/caveman/config.json
 echo "Registering rover-plugins Claude plugin marketplace..."
 if command -v claude >/dev/null 2>&1; then
   claude plugin marketplace add roverdotcom/rover-claude-plugins || true
-  for plugin in ci-self-iteration owner-retention analyze-this rover-mode; do
+  for plugin in ci-self-iteration owner-retention rover-mode; do
     if claude plugin list 2>/dev/null | grep -q "$plugin@rover-plugins"; then
       echo "$plugin plugin already installed, skipping."
     else
