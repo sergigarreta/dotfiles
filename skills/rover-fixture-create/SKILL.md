@@ -17,7 +17,7 @@ and JWTs for every created person. Run it from anywhere inside the `web` repo ch
 - **Scenario**: requester country (ISO-2), city, region/state code, postal code, plus
   any other option the user asks for.
 - **Environment**: pass it straight through as `--base-url` — `staging-qa-testing`,
-  `staging-<name>`, `local`, or a full URL. The script resolves it.
+  `staging-<name>`, `local` (`http://rover.local:8001`, see `web-local-urls`), or a full URL. The script resolves it.
 
 ## Step 2 — Create the fixture
 
