@@ -42,19 +42,17 @@ git -C /workspaces/web fsck --connectivity-only --no-dangling   # "missing tree 
 
 In the 2026-11 incident the missing trees belonged to real `master` commits (`git for-each-ref --contains <commit>` listed master-based branches), so deleting local branches does not help. `git gc` then also fails with `fatal: bad tree object <sha>`.
 
-`git fetch --refetch origin` did not repair it. The ~7GB single-pack download ended with `fatal: early EOF`, and it left yet another `tmp_pack_*`. Check the real exit code: piping into `tail` hides it.
-
-What to try next is a fresh bare clone in a separate directory (it needs ~7GB free). Copy its pack into the broken repo, which only adds objects:
+Do not re-download the repo. `git fetch --refetch origin` (~7GB in one pack) ended with `fatal: early EOF`. Only a handful of objects are missing (9 trees in the 2026-11 incident), and GitHub serves them by sha, so fetch just those:
 
 ```bash
-git clone --bare --no-tags https://github.com/roverdotcom/web /tmp/web-fresh.git
-cp /tmp/web-fresh.git/objects/pack/pack-* /workspaces/web/.git/objects/pack/
-git -C /workspaces/web fsck --connectivity-only --no-dangling   # expect no "missing"
-git -C /workspaces/web gc --prune=now
-rm -rf /tmp/web-fresh.git
+cd /workspaces/web
+git fsck --connectivity-only --no-dangling 2>&1 | awk '/^missing/{print $3}' > /tmp/missing.txt   # ~7 min; full list
+bash ~/.claude/skills/codespace-disk-cleanup/heal-missing-objects.sh /workspaces/web /tmp/missing.txt
 ```
 
-Then run `git fetch origin` again. It should exit 0, and no new `tmp_pack_*` should appear. Until it does, the temp packs keep coming back, so re-run the `find ... -delete` above whenever disk drops.
+[`heal-missing-objects.sh`](heal-missing-objects.sh) works in rounds. Each round, `rev-list --missing=print` under the listed objects finds what is still missing. The script fetches those shas from GitHub into a temp bare repo, then writes each one into the real repo with `hash-object -w` and checks that the hash matches. Rounds matter: a restored tree can point at sub-trees that are also missing, and fsck lists only the top of each gap. In the incident, 9 trees led to 4, then 1, then 1, then 0. Do not copy the temp repo's packs, because they carry `.promisor` markers. Do not walk the temp repo with `rev-list` either: it stalls trying to lazy-fetch objects its filtered pack left out.
+
+Then check that `git fetch origin` exits 0. A one-off exit 1 can be a ref-lock race with VS Code autofetch, so retry once. Finish with `git fsck --connectivity-only --no-dangling` (expect no `missing`), `git gc --prune=now`, and the temp-pack `find ... -delete` above. When checking exit codes, use `${PIPESTATUS[0]}`: piping into `tail` hides failures.
 
 ## 3. Worktrees (~1GB each, more with node_modules)
 
