@@ -40,14 +40,21 @@ git -C /workspaces/web fetch origin        # see the error
 git -C /workspaces/web fsck --connectivity-only --no-dangling   # "missing tree ..." = corrupt
 ```
 
-To repair, re-download every object. That is about 7GB, so it needs that much free space first. It deletes nothing local:
+In the 2026-11 incident the missing trees belonged to real `master` commits (`git for-each-ref --contains <commit>` listed master-based branches), so deleting local branches does not help. `git gc` then also fails with `fatal: bad tree object <sha>`.
+
+`git fetch --refetch origin` did not repair it. The ~7GB single-pack download ended with `fatal: early EOF`, and it left yet another `tmp_pack_*`. Check the real exit code: piping into `tail` hides it.
+
+What to try next is a fresh bare clone in a separate directory (it needs ~7GB free). Copy its pack into the broken repo, which only adds objects:
 
 ```bash
-git -C /workspaces/web fetch --refetch origin
-git -C /workspaces/web gc --prune=now       # drops the old packs once the refetch succeeds
+git clone --bare --no-tags https://github.com/roverdotcom/web /tmp/web-fresh.git
+cp /tmp/web-fresh.git/objects/pack/pack-* /workspaces/web/.git/objects/pack/
+git -C /workspaces/web fsck --connectivity-only --no-dangling   # expect no "missing"
+git -C /workspaces/web gc --prune=now
+rm -rf /tmp/web-fresh.git
 ```
 
-Then run `git fetch origin` again. It should exit 0, and no new `tmp_pack_*` should appear.
+Then run `git fetch origin` again. It should exit 0, and no new `tmp_pack_*` should appear. Until it does, the temp packs keep coming back, so re-run the `find ... -delete` above whenever disk drops.
 
 ## 3. Worktrees (~1GB each, more with node_modules)
 
