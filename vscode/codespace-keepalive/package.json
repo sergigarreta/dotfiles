@@ -3,7 +3,7 @@
   "displayName": "Codespace Keep-Alive (personal)",
   "description": "During working hours, types into a hidden terminal and saves a scratch file outside any repo so the codespace idle timeout does not fire.",
   "publisher": "sergigarreta",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "license": "UNLICENSED",
   "engines": { "vscode": "^1.94.0" },
@@ -20,7 +20,7 @@
       "title": "Codespace Keep-Alive",
       "properties": {
         "codespaceKeepAlive.enabled": { "type": "boolean", "default": true },
-        "codespaceKeepAlive.timeZone": { "type": "string", "default": "UTC", "description": "IANA time zone the working hours are in, e.g. Europe/Madrid." },
+        "codespaceKeepAlive.timeZone": { "type": "string", "default": "Europe/Madrid", "description": "IANA time zone the working hours are in, e.g. Europe/Madrid." },
         "codespaceKeepAlive.startHour": { "type": "integer", "default": 9, "minimum": 0, "maximum": 23 },
         "codespaceKeepAlive.endHour": { "type": "integer", "default": 17, "minimum": 1, "maximum": 24, "description": "Pings stop at this hour (exclusive)." },
         "codespaceKeepAlive.weekdaysOnly": { "type": "boolean", "default": true },
