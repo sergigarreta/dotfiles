@@ -19,7 +19,7 @@ function inWindow(now = new Date()) {
   const c = cfg();
   const parts = Object.fromEntries(
     new Intl.DateTimeFormat("en-US", {
-      timeZone: c.get("timeZone") || "UTC",
+      timeZone: c.get("timeZone") || "Europe/Madrid",
       weekday: "short",
       hour: "numeric",
       hourCycle: "h23",

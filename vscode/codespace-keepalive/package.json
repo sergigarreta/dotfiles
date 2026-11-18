@@ -3,7 +3,7 @@
   "displayName": "Codespace Keep-Alive (personal)",
   "description": "During working hours, types into a hidden terminal and saves a scratch file outside any repo so the codespace idle timeout does not fire.",
   "publisher": "sergigarreta",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "license": "UNLICENSED",
   "engines": { "vscode": "^1.94.0" },
