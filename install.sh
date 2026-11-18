@@ -158,3 +158,8 @@ if command -v jq >/dev/null 2>&1; then
 else
   echo "jq missing — skipping VSCode machine settings." >&2
 fi
+
+# Personal VSCode extension that keeps the codespace from idling out during
+# working hours (settings: codespaceKeepAlive.*).
+echo "Installing codespace-keepalive VSCode extension..."
+bash "$DOTFILES_DIR/vscode/codespace-keepalive/install.sh" || true
