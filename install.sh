@@ -159,6 +159,12 @@ else
   echo "jq missing — skipping VSCode machine settings." >&2
 fi
 
+# Personal VSCode extension that removes the Claude tab title cut and reloads open
+# Claude tabs after patching. The VSCode server may not exist yet on a fresh
+# codespace; claude/patch-vscode-tab-title.sh installs it on the next Claude session.
+echo "Installing claude-tab-titles VSCode extension..."
+bash "$DOTFILES_DIR/vscode/claude-tab-titles/install.sh" || true
+
 # Personal VSCode extension that keeps the codespace from idling out during
 # working hours (settings: codespaceKeepAlive.*).
 echo "Installing codespace-keepalive VSCode extension..."

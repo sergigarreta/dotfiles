@@ -7,7 +7,9 @@
   "enabledPlugins": {
     "ci-self-iteration@rover-plugins": true,
     "owner-retention@rover-plugins": true,
-    "rover-mode@rover-plugins": true
+    "rover-mode@rover-plugins": true,
+    "work@rover-plugins": true,
+    "create-pr@rover-plugins": true
   },
   "permissions": {
     "allow": [
@@ -19,6 +21,18 @@
       "Bash(m makemessages:*)",
       "Bash(pnpm build:apiClient:*)",
       "mcp__gateway__portal_codemode_execute"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/workspaces/.codespaces/.persistedshare/dotfiles/claude/patch-vscode-tab-title.sh"
+          }
+        ]
+      }
     ]
   }
 }

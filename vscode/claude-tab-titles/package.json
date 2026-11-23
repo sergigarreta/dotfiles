@@ -1,0 +1,18 @@
+{
+  "name": "claude-tab-titles",
+  "displayName": "Claude Tab Titles (personal)",
+  "description": "Removes the Claude Code webview's 25-char tab title cut and reloads open Claude tabs so they pick it up.",
+  "publisher": "sergigarreta",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": { "vscode": "^1.94.0" },
+  "extensionKind": ["workspace"],
+  "main": "./extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "commands": [
+      { "command": "claudeTabTitles.refreshTabs", "title": "Claude Tab Titles: Patch and Reload Claude Tabs" }
+    ]
+  }
+}
