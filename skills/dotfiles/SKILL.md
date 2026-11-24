@@ -1,6 +1,6 @@
 ---
 name: dotfiles
-description: "Manage the personal dotfiles repo at ~/.config/coderv2/dotfiles (sergigarreta/dotfiles) — the source of install.sh, personal.py, setup-claude-dev.sh, the claude/ directory holding Claude Code settings and permission allowlist, and the personal Claude skills symlinked into ~/.claude/skills. Use when adding, editing or removing a personal skill, allowlisting a command so Claude stops asking permission for it, changing Claude Code settings or MCP/plugin setup, changing codespace setup/install steps, or committing and pushing dotfiles changes. Pushing needs the DOTFILES_REPO_TOKEN PAT, which must never be printed, echoed, or written to a file."
+description: "Manage the personal dotfiles repo at ~/.config/coderv2/dotfiles (sergigarreta/dotfiles) — the source of install.sh, personal.py, the claude/ directory holding Claude Code settings and permission allowlist, and the personal Claude skills symlinked into ~/.claude/skills. Use when adding, editing or removing a personal skill, allowlisting a command so Claude stops asking permission for it, changing Claude Code settings or MCP/plugin setup, changing codespace setup/install steps, or committing and pushing dotfiles changes. Pushing needs the DOTFILES_REPO_TOKEN PAT, which must never be printed, echoed, or written to a file."
 allowed-tools: Bash(git:*), Bash(ls:*), Bash(cat:*), Bash(mkdir:*), Bash(ln:*), Bash(rm:*), Bash(sed:*), Bash(grep:*), Bash(bash:*), Read, Write, Edit
 ---
 
@@ -11,13 +11,12 @@ allowed-tools: Bash(git:*), Bash(ls:*), Bash(cat:*), Bash(mkdir:*), Bash(ln:*), 
 | Path | What it is |
 |------|-----------|
 | `~/.config/coderv2/dotfiles` | the clone (call it `$DOTFILES`); remote `https://github.com/sergigarreta/dotfiles`, branch `roverspaces` (`main` is the GitHub Codespaces setup) |
-| `lib/env.sh` | sourced by every script; resolves `DOTFILES_DIR`, `CLAUDE_HOME` (`$CLAUDE_CONFIG_DIR`), `VSCODE_ROOT` and `MACHINE_ID` |
-| `install.sh` | runs on every workspace start; the top-level orchestrator (personal.py, wiki, push auth, VSCode task) |
+| `lib/env.sh` | sourced by every script; resolves `DOTFILES_DIR`, `CLAUDE_HOME` (`$CLAUDE_CONFIG_DIR`) and `MACHINE_ID` |
+| `install.sh` | runs on every workspace start; the top-level orchestrator (personal.py, Claude setup, wiki, push auth, Statsig) |
 | `claude/settings.json` | **declarative** Claude Code user settings — model, env, `permissions.allow`. Edit this to change Claude config |
 | `claude/merge-settings.jq` | deep-merge filter that applies the fragment above into `$CLAUDE_CONFIG_DIR/settings.json` |
 | `claude/install.sh` | applies the settings fragment, links skills, installs plugins, registers MCP servers |
 | `personal.py` | Django settings copied into `web/src/aplaceforrover/rover/settings/personal.py` |
-| `setup-claude-dev.sh` | on-demand VSCode task (surface dotfiles + rover-plugins repos) |
 | `statsig-register-workspace.sh` | run by `install.sh`; adds `$MACHINE_NAME` to the Statsig segment `sergi_garreta_codespaces` via the Console API |
 | `skills/<name>/SKILL.md` | personal Claude skills, symlinked to `~/.claude/skills/<name>` by `claude/install.sh` |
 

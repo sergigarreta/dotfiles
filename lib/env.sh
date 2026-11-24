@@ -9,14 +9,12 @@ if [ -n "${CODER:-}" ]; then
   # config from CLAUDE_CONFIG_DIR, which the Roverspace template exports for
   # login shells only, so agent scripts may not have it set.
   CLAUDE_HOME="${CLAUDE_CONFIG_DIR:-/var/run/coder/claude}"
-  VSCODE_ROOT="$HOME/.vscode-server"
   # Agent scripts may run before the template's profile.d exports MACHINE_NAME,
   # which the template builds as <owner>-<workspace>.
   MACHINE_ID="${MACHINE_NAME:-${CODER_WORKSPACE_OWNER_NAME:+$CODER_WORKSPACE_OWNER_NAME-$CODER_WORKSPACE_NAME}}"
   export CLAUDE_CONFIG_DIR="$CLAUDE_HOME"
 else
   CLAUDE_HOME="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
-  VSCODE_ROOT="$HOME/.vscode-remote"
   MACHINE_ID="${MACHINE_NAME:-${CODESPACE_NAME:-}}"
 fi
 
