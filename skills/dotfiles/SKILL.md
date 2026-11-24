@@ -1,6 +1,6 @@
 ---
 name: dotfiles
-description: "Manage the personal dotfiles repo at ~/.config/coderv2/dotfiles (sergigarreta/dotfiles) — the source of install.sh, personal.py, the claude/ directory holding Claude Code settings and permission allowlist, and the personal Claude skills symlinked into ~/.claude/skills. Use when adding, editing or removing a personal skill, allowlisting a command so Claude stops asking permission for it, changing Claude Code settings or MCP/plugin setup, changing codespace setup/install steps, or committing and pushing dotfiles changes. Pushing needs the DOTFILES_REPO_TOKEN PAT, which must never be printed, echoed, or written to a file."
+description: "Manage the personal dotfiles repo at ~/.config/coderv2/dotfiles (sergigarreta/dotfiles) — the source of install.sh, personal.py, the claude/ directory holding Claude Code settings and permission allowlist, and the personal Claude skills symlinked into ~/.claude/skills. Use when adding, editing or removing a personal skill, allowlisting a command so Claude stops asking permission for it, changing Claude Code settings or MCP/plugin setup, changing Roverspace setup/install steps, or committing and pushing dotfiles changes. Pushing uses the Roverspace GitHub login; tokens must never be printed, echoed, or written to a file."
 allowed-tools: Bash(git:*), Bash(ls:*), Bash(cat:*), Bash(mkdir:*), Bash(ln:*), Bash(rm:*), Bash(sed:*), Bash(grep:*), Bash(bash:*), Read, Write, Edit
 ---
 
