@@ -3,25 +3,25 @@
 # Claude Code setup — user-level settings, plugins, skills and MCP servers.
 #
 # Called by the top-level install.sh, and safe to re-run on its own:
-#   bash /workspaces/.codespaces/.persistedshare/dotfiles/claude/install.sh
+#   bash ~/.config/coderv2/dotfiles/claude/install.sh
 #
 # Every step is idempotent. Declarative settings live in claude/settings.json
 # (edit that, not this script); this script only applies them.
 
 set -e
 
-DOTFILES_DIR=/workspaces/.codespaces/.persistedshare/dotfiles
+. "$(dirname "$0")/../lib/env.sh"
 CLAUDE_DIR="$DOTFILES_DIR/claude"
-CLAUDE_SETTINGS=~/.claude/settings.json
+CLAUDE_SETTINGS="$CLAUDE_HOME/settings.json"
 
 # ---------------------------------------------------------------------------
-# User settings (~/.claude/settings.json)
+# User settings ($CLAUDE_HOME/settings.json)
 # ---------------------------------------------------------------------------
 # Merged rather than overwritten so settings owned elsewhere survive: the wiki's
 # SessionStart/Stop hooks, marketplaces and enabledPlugins written by the claude
 # CLI, and permission rules the user added interactively via /permissions.
 echo "Applying Claude settings from claude/settings.json..."
-mkdir -p ~/.claude
+mkdir -p "$CLAUDE_HOME"
 if command -v jq >/dev/null 2>&1; then
   [ -f "$CLAUDE_SETTINGS" ] || echo '{}' > "$CLAUDE_SETTINGS"
   jq -s -f "$CLAUDE_DIR/merge-settings.jq" \
@@ -32,34 +32,41 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Keybindings (~/.claude/keybindings.json)
+# Keybindings ($CLAUDE_HOME/keybindings.json)
 # ---------------------------------------------------------------------------
 # Copied wholesale: nothing else writes this file, and Claude Code has no UI for
 # editing keybindings, so there is no external state to preserve.
 echo "Applying Claude keybindings from claude/keybindings.json..."
-cp "$CLAUDE_DIR/keybindings.json" ~/.claude/keybindings.json
+cp "$CLAUDE_DIR/keybindings.json" "$CLAUDE_HOME/keybindings.json"
 
 # ---------------------------------------------------------------------------
 # Personal skills
 # ---------------------------------------------------------------------------
-# Symlink (not copy) so edits under ~/.claude/skills are live for Claude AND
+# Symlink (not copy) so edits under $CLAUDE_HOME/skills are live for Claude AND
 # tracked in this dotfiles repo. These are personal skills, not a plugin
 # marketplace, so nothing auto-updates or overwrites them. The loop only creates
 # links — removing a skill means deleting the symlink by hand too.
 echo "Linking personal Claude skills..."
-mkdir -p ~/.claude/skills
+mkdir -p "$CLAUDE_HOME/skills"
 for skill_dir in "$DOTFILES_DIR"/skills/*/; do
   name="$(basename "$skill_dir")"
-  target="$HOME/.claude/skills/$name"
+  target="$CLAUDE_HOME/skills/$name"
   rm -rf "$target"
   ln -s "${skill_dir%/}" "$target"
 done
+
+# Skill docs call their helper scripts by ~/.claude/skills/<name>/..., so point
+# that path at the real skills dir when Claude's config lives elsewhere.
+if [ "$CLAUDE_HOME" != "$HOME/.claude" ] && [ ! -e "$HOME/.claude/skills" ]; then
+  mkdir -p "$HOME/.claude"
+  ln -s "$CLAUDE_HOME/skills" "$HOME/.claude/skills"
+fi
 
 # ---------------------------------------------------------------------------
 # Plugins
 # ---------------------------------------------------------------------------
 echo "Installing caveman Claude plugin..."
-if [ ! -d "$HOME/.claude/plugins/cache/caveman" ]; then
+if [ ! -d "$CLAUDE_HOME/plugins/cache/caveman" ]; then
   curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.sh | bash
 else
   echo "caveman plugin already installed, skipping."
@@ -72,7 +79,7 @@ mkdir -p ~/.config/caveman
 echo '{"defaultMode": "ultra"}' > ~/.config/caveman/config.json
 
 # setup-claude-dev.sh and the VSCode workspace expect the clone at
-# ~/.claude/plugins/marketplaces/rover-plugins to exist. enabledPlugins in
+# $CLAUDE_HOME/plugins/marketplaces/rover-plugins to exist. enabledPlugins in
 # settings.json only enables a plugin; it does not install it, so install here.
 echo "Registering rover-plugins Claude plugin marketplace..."
 if command -v claude >/dev/null 2>&1; then
@@ -91,7 +98,7 @@ fi
 # ---------------------------------------------------------------------------
 # MCP servers
 # ---------------------------------------------------------------------------
-# Internal Google Workspace MCP, personal/local scope: stored in ~/.claude.json
+# Internal Google Workspace MCP, personal/local scope: stored in $CLAUDE_HOME/.claude.json
 # under the /workspaces/web project, not the shared repo .mcp.json. Auth is OAuth
 # via browser on first use (run `claude`, then /mcp).
 echo "Registering google-workspace MCP server..."

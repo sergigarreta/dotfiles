@@ -1,9 +1,10 @@
 #!/bin/bash
-# Packages this folder as a .vsix and installs it into the codespace's VS Code server.
+# Packages this folder as a .vsix and installs it into the workspace's VS Code server.
 # On a fresh codespace the server may not exist yet when dotfiles run, so the
 # install waits for it in the background (up to 30 min) instead of skipping.
 set -e
 DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$DIR/../../lib/env.sh"
 VSIX="${TMPDIR:-/tmp}/codespace-keepalive.vsix"
 python3 - "$DIR" "$VSIX" <<'PY'
 import json, sys, zipfile
@@ -29,10 +30,9 @@ with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
     for f in ("package.json", "extension.js"):
         z.write(f"{src}/{f}", f"extension/{f}")
 PY
-find_server() { ls -td ~/.vscode-remote/bin/*/bin/code-server 2>/dev/null | head -1; }
+find_server() { ls -td "$VSCODE_ROOT"/bin/*/bin/code-server 2>/dev/null | head -1; }
 install_into() {
-  "$1" --user-data-dir ~/.vscode-remote/data --extensions-dir ~/.vscode-remote/extensions --install-extension "$VSIX" --force
-  rmdir ~/.vscode-server 2>/dev/null || true
+  "$1" --user-data-dir "$VSCODE_ROOT/data" --extensions-dir "$VSCODE_ROOT/extensions" --install-extension "$VSIX" --force
 }
 SERVER="$(find_server)"
 if [ -n "$SERVER" ]; then
@@ -40,7 +40,7 @@ if [ -n "$SERVER" ]; then
   exit 0
 fi
 echo "VS Code server not found yet — installing codespace-keepalive in the background once it appears." >&2
-export VSIX
+export VSIX VSCODE_ROOT
 export -f find_server install_into
 nohup bash -c 'for _ in $(seq 120); do S="$(find_server)"; [ -n "$S" ] && { sleep 30; install_into "$S"; exit 0; }; sleep 15; done' \
   > "${TMPDIR:-/tmp}/codespace-keepalive-install.log" 2>&1 &

@@ -1,6 +1,6 @@
 ---
 name: dotfiles
-description: "Manage the personal dotfiles repo at /workspaces/.codespaces/.persistedshare/dotfiles (sergigarreta/dotfiles) — the source of install.sh, personal.py, setup-claude-dev.sh, the claude/ directory holding Claude Code settings and permission allowlist, and the personal Claude skills symlinked into ~/.claude/skills. Use when adding, editing or removing a personal skill, allowlisting a command so Claude stops asking permission for it, changing Claude Code settings or MCP/plugin setup, changing codespace setup/install steps, or committing and pushing dotfiles changes. Pushing needs the DOTFILES_REPO_TOKEN PAT, which must never be printed, echoed, or written to a file."
+description: "Manage the personal dotfiles repo at ~/.config/coderv2/dotfiles (sergigarreta/dotfiles) — the source of install.sh, personal.py, setup-claude-dev.sh, the claude/ directory holding Claude Code settings and permission allowlist, and the personal Claude skills symlinked into ~/.claude/skills. Use when adding, editing or removing a personal skill, allowlisting a command so Claude stops asking permission for it, changing Claude Code settings or MCP/plugin setup, changing codespace setup/install steps, or committing and pushing dotfiles changes. Pushing needs the DOTFILES_REPO_TOKEN PAT, which must never be printed, echoed, or written to a file."
 allowed-tools: Bash(git:*), Bash(ls:*), Bash(cat:*), Bash(mkdir:*), Bash(ln:*), Bash(rm:*), Bash(sed:*), Bash(grep:*), Bash(bash:*), Read, Write, Edit
 ---
 
@@ -10,14 +10,15 @@ allowed-tools: Bash(git:*), Bash(ls:*), Bash(cat:*), Bash(mkdir:*), Bash(ln:*), 
 
 | Path | What it is |
 |------|-----------|
-| `/workspaces/.codespaces/.persistedshare/dotfiles` | the clone (call it `$DOTFILES`); remote `https://github.com/sergigarreta/dotfiles`, branch `main` |
-| `install.sh` | runs once per codespace creation; the top-level orchestrator (personal.py, wiki, push auth, VSCode task) |
+| `~/.config/coderv2/dotfiles` | the clone (call it `$DOTFILES`); remote `https://github.com/sergigarreta/dotfiles`, branch `roverspaces` (`main` is the GitHub Codespaces setup) |
+| `lib/env.sh` | sourced by every script; resolves `DOTFILES_DIR`, `CLAUDE_HOME` (`$CLAUDE_CONFIG_DIR`), `VSCODE_ROOT` and `MACHINE_ID` |
+| `install.sh` | runs on every workspace start; the top-level orchestrator (personal.py, wiki, push auth, VSCode task) |
 | `claude/settings.json` | **declarative** Claude Code user settings — model, env, `permissions.allow`. Edit this to change Claude config |
-| `claude/merge-settings.jq` | deep-merge filter that applies the fragment above into `~/.claude/settings.json` |
+| `claude/merge-settings.jq` | deep-merge filter that applies the fragment above into `$CLAUDE_CONFIG_DIR/settings.json` |
 | `claude/install.sh` | applies the settings fragment, links skills, installs plugins, registers MCP servers |
 | `personal.py` | Django settings copied into `web/src/aplaceforrover/rover/settings/personal.py` |
 | `setup-claude-dev.sh` | on-demand VSCode task (surface dotfiles + rover-plugins repos) |
-| `statsig-register-codespace.sh` | run by `install.sh`; adds `$CODESPACE_NAME` to the Statsig segment `sergi_garreta_codespaces` via the Console API |
+| `statsig-register-workspace.sh` | run by `install.sh`; adds `$MACHINE_NAME` to the Statsig segment `sergi_garreta_codespaces` via the Console API |
 | `skills/<name>/SKILL.md` | personal Claude skills, symlinked to `~/.claude/skills/<name>` by `claude/install.sh` |
 
 `~/.claude/skills/<name>` are **symlinks into this repo**, so editing either path
@@ -27,7 +28,7 @@ edits the repo. `~/.claude/skills/llm-wiki` is the exception — it points into
 Always work from a shell variable, never retype the path:
 
 ```bash
-DOTFILES=/workspaces/.codespaces/.persistedshare/dotfiles
+DOTFILES=~/.config/coderv2/dotfiles
 ```
 
 ## Changing Claude Code config
@@ -35,7 +36,7 @@ DOTFILES=/workspaces/.codespaces/.persistedshare/dotfiles
 All of it lives under `claude/`. Prefer the declarative file over the script:
 
 - **A setting or permission rule** → edit `claude/settings.json`. It is merged,
-  not copied, into `~/.claude/settings.json`: objects merge key by key, arrays
+  not copied, into `$CLAUDE_CONFIG_DIR/settings.json`: objects merge key by key, arrays
   union, scalars overwrite. Unioned arrays are what keep the wiki's hooks and any
   rule the user added via `/permissions` from being dropped, and what make a
   re-run a no-op.
@@ -83,32 +84,21 @@ Newly added or edited skills are picked up on the next Claude Code session.
 
 ## Editing install.sh
 
-- It runs with `set -e` on a **fresh** codespace, and is also re-run by hand — so
+- Coder runs it with `set -e` on **every** workspace start, and it is also re-run by hand, so
   every step must be idempotent (guard with `if [ ! -d ... ]`, `jq` filters that
   drop an existing entry before re-adding it, `any(.label == ...)` checks).
 - A missing secret must warn and continue, not abort the whole setup.
 - Never write a secret into a file it creates. Tokens are supplied by
   environment-reading credential helpers (see below).
 
-## Committing and pushing (uses DOTFILES_REPO_TOKEN)
+## Committing and pushing
 
-Every change to this repo ends here. Editing a file is half the job — the repo is
-the only thing that persists across codespaces, so commit and push before
+Every change to this repo ends here. Editing a file is half the job: the repo is
+the only thing that persists across Roverspaces, so commit and push before
 reporting the work done.
 
-`DOTFILES_REPO_TOKEN` is a fine-grained GitHub PAT (Contents: read+write on
-`sergigarreta/dotfiles`), delivered as a Codespaces secret. The codespace's own
-`GITHUB_TOKEN` is scoped to roverdotcom repos and **cannot** push here.
-
-`install.sh` already configured this clone's URL-scoped credential helper to read
-the token from the environment at call time:
-
-```
-credential.https://github.com.helper=!f() { echo username=x-access-token; echo "password=$DOTFILES_REPO_TOKEN"; }; f
-```
-
-So the token never lands in `.git/config`, `~/.git-credentials`, or the remote
-URL — and it does not need to. **Just run git normally:**
+The Roverspace's GitHub login (`gh auth git-credential`, from `~/.gitconfig`)
+can push to `sergigarreta/dotfiles`, so **just run git normally**:
 
 ```bash
 git -C "$DOTFILES" add -A
@@ -116,51 +106,42 @@ git -C "$DOTFILES" commit -m "<message>"
 git -C "$DOTFILES" push
 ```
 
-### Handling the token — hard rules
+If `DOTFILES_REPO_TOKEN` is set (a Coder user secret), `install.sh` configures
+this clone's URL-scoped credential helper to read it from the environment at call
+time, so the token never lands in `.git/config` or the remote URL.
 
-- **Never print, echo, `env`-dump, log, or interpolate the token.** Do not run
-  `echo $DOTFILES_REPO_TOKEN`, `env | grep DOTFILES`, or embed it in a remote
-  URL like `https://x-access-token:$TOKEN@github.com/...` — that value would be
-  written to `.git/config` and shown in `git remote -v`.
-- To check whether it exists, test emptiness only:
+### Handling tokens — hard rules
+
+- **Never print, echo, `env`-dump, log, or interpolate a token.** Do not embed
+  one in a remote URL like `https://x-access-token:$TOKEN@github.com/...`; that
+  value would be written to `.git/config` and shown in `git remote -v`.
+- To check whether one exists, test emptiness only:
   `[ -n "${DOTFILES_REPO_TOKEN:-}" ] && echo present || echo missing`
-- If output could contain a URL with credentials, redact it:
-  `git -C "$DOTFILES" remote -v | sed -E 's#https://[^@]*@#https://***@#'`
-- Never copy the token into another repo, a script, an MCP call, a Jira ticket,
+- Never copy a token into another repo, a script, an MCP call, a Jira ticket,
   or a PR body.
 - The same rules apply to `SERGI_STATSIG_CONSOLE_API_KEY`, the Statsig Console API key
-  used by `statsig-register-codespace.sh`. It can edit the whole Statsig project.
+  used by `statsig-register-workspace.sh`. It can edit the whole Statsig project.
+
+### Secrets on Roverspaces
+
+Secrets are Coder user secrets, set from any machine logged in with `coder login`
+and injected on the next workspace start:
+
+```bash
+printf %s "$VALUE" | coder secret create <name> --env <ENV_VAR_NAME>
+```
 
 ### If the push fails
 
-1. Confirm the secret is present (emptiness test above). If missing: it must be
-   added at <https://github.com/settings/codespaces> and the codespace restarted
-   — a secret is only injected at container start.
-2. Confirm the helper is configured, redacting as you print:
-
-   ```bash
-   git -C "$DOTFILES" config --local --get-all credential.https://github.com.helper | sed -E 's#\$DOTFILES_REPO_TOKEN#<env>#'
-   ```
-
-   If it is absent, re-add it — note the empty value first, which resets the
-   inherited `gh auth git-credential` helper from `~/.gitconfig` (a URL-scoped
-   helper always beats a generic one, so setting plain `credential.helper` is
-   silently ignored):
-
-   ```bash
-   git -C "$DOTFILES" config credential.https://github.com.helper ""
-   git -C "$DOTFILES" config --add credential.https://github.com.helper \
-     '!f() { echo username=x-access-token; echo "password=$DOTFILES_REPO_TOKEN"; }; f'
-   ```
-3. A 403 with the helper present and the secret set means the PAT lacks
-   **Contents: read and write** on `sergigarreta/dotfiles`, or has expired — the
-   user has to fix it in GitHub settings; nothing here can work around it.
+1. `gh auth status` must show the Roverspace login. A 403 means that login (or
+   `DOTFILES_REPO_TOKEN`, if set) lacks **Contents: read and write** on
+   `sergigarreta/dotfiles`; the user has to fix it in GitHub.
 
 ## Applying changes
 
 - Skill edits: live immediately via the symlink; effective next session.
 - `install.sh` changes: `bash "$DOTFILES/install.sh"` re-runs it in place
-  (idempotent), or they apply on the next codespace creation.
+  (idempotent), or they apply on the next workspace start.
 - Claude config: `bash "$DOTFILES/claude/install.sh"` applies just that part
   without re-running the wiki clone or plugin installs above it.
 - `personal.py` changes: re-run `install.sh`, or copy it to
@@ -169,10 +150,10 @@ git -C "$DOTFILES" push
 ## Conventions
 
 - Small, focused commits with an imperative subject line; no PR needed — commit
-  straight to `main` and push.
+  straight to `roverspaces` and push.
 - **Always commit and push as part of the task** — an edit left in the working
-  tree does not survive a codespace rebuild, so an uncommitted change has not
+  tree does not survive a Roverspace rebuild, so an uncommitted change has not
   been delivered. Do not ask first, and do not stop at "edited, want me to
   push?"; finish the edit, commit it, push it, and report the pushed SHA.
 - `git -C "$DOTFILES" pull --rebase --autostash` before pushing if the remote has
-  moved (another codespace may have pushed).
+  moved (another Roverspace may have pushed).

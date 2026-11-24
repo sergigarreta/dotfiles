@@ -8,14 +8,14 @@
 
 set -e
 
-DOTFILES=/workspaces/.codespaces/.persistedshare/dotfiles
-ROVER_PLUGINS="$HOME/.claude/plugins/marketplaces/rover-plugins"
-WIKI=/workspaces/wiki
+. "$(dirname "$0")/lib/env.sh"
+DOTFILES="$DOTFILES_DIR"
+ROVER_PLUGINS="$CLAUDE_HOME/plugins/marketplaces/rover-plugins"
 
 # Freeze the rover-plugins marketplace so local edits survive. autoUpdate:true
 # pulls upstream and clobbers any change; false keeps the clone editable at the
 # cost of not receiving upstream fixes until flipped back to true.
-KNOWN_MP=~/.claude/plugins/known_marketplaces.json
+KNOWN_MP="$CLAUDE_HOME/plugins/known_marketplaces.json"
 if [ -f "$KNOWN_MP" ]; then
   jq '.["rover-plugins"].autoUpdate = false' "$KNOWN_MP" > "$KNOWN_MP.tmp" && mv "$KNOWN_MP.tmp" "$KNOWN_MP"
   echo "rover-plugins autoUpdate disabled."
@@ -24,11 +24,9 @@ fi
 # Resolve a CLI that can actually reach the running window. /usr/local/bin/code is
 # a shim that re-searches PATH for a later `code` and exits 127 with "code or
 # code-insiders is not installed" when there is none, so `command -v code` alone
-# proves nothing. The real binary ships with the server; the data dir name differs
-# across VSCode clients, so try both.
+# proves nothing. The real binary ships with the server.
 CODE=""
-for candidate in "$HOME"/.vscode-remote/bin/*/bin/remote-cli/code \
-                 "$HOME"/.vscode-server/bin/*/bin/remote-cli/code; do
+for candidate in "$VSCODE_ROOT"/bin/*/bin/remote-cli/code; do
   if [ -x "$candidate" ]; then
     CODE="$candidate"
     break
@@ -44,10 +42,10 @@ if [ -d "$WIKI" ]; then
 else
   FOLDERS="$DOTFILES $ROVER_PLUGINS"
   ADDED="dotfiles + rover-plugins"
-  echo "$WIKI is not cloned — install.sh only clones it when WIKI_REPO_TOKEN is set." >&2
+  echo "$WIKI is not cloned — re-run install.sh to clone it." >&2
 fi
 
-# tfalerts is cloned by hand: the codespace GITHUB_TOKEN only covers web.
+# tfalerts is cloned by hand.
 TFALERTS=/workspaces/tfalerts
 if [ -d "$TFALERTS" ]; then
   FOLDERS="$FOLDERS $TFALERTS"
