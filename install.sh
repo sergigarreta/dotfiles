@@ -51,7 +51,7 @@ if [ ! -d "$WIKI/.git" ]; then
 fi
 if [ -d "$WIKI/.git" ]; then
   if [ -n "${WIKI_REPO_TOKEN:-}" ]; then
-    git -C "$WIKI" config credential.https://github.com.helper ""
+    git -C "$WIKI" config --replace-all credential.https://github.com.helper ""
     git -C "$WIKI" config --add credential.https://github.com.helper "$WIKI_CRED_HELPER"
   fi
   git -C "$WIKI" pull --rebase --autostash --quiet || true
@@ -88,7 +88,7 @@ DOTFILES_CRED_HELPER='!f() { echo username=x-access-token; echo "password=$DOTFI
 if [ -z "${DOTFILES_REPO_TOKEN:-}" ]; then
   echo "DOTFILES_REPO_TOKEN not set — using the Roverspace GitHub login for dotfiles pushes."
 else
-  git -C "$DOTFILES_DIR" config credential.https://github.com.helper ""
+  git -C "$DOTFILES_DIR" config --replace-all credential.https://github.com.helper ""
   git -C "$DOTFILES_DIR" config --add credential.https://github.com.helper "$DOTFILES_CRED_HELPER"
   echo "dotfiles repo ready to push at $DOTFILES_DIR."
 fi
