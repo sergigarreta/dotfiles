@@ -47,12 +47,18 @@ if [ -d "$WIKI/.git" ]; then
   rm -rf "$CLAUDE_HOME/skills/llm-wiki"
   ln -s "$WIKI/.claude/skills/llm-wiki" "$CLAUDE_HOME/skills/llm-wiki"
 
-  # Load the wiki schema into every session in the web repo only.
-  # CLAUDE.local.md is already gitignored by web (.gitignore), so this leaves no
-  # diff in the shared repo. The import resolves outside the working directory,
-  # so Claude Code asks for approval the first time — accept it once.
-  if [ -d /workspaces/web ] && ! grep -q '@/workspaces/wiki/WIKI.md' /workspaces/web/CLAUDE.local.md 2>/dev/null; then
-    printf '# Personal\n\n@/workspaces/wiki/WIKI.md\n' >> /workspaces/web/CLAUDE.local.md
+  # Load the wiki schema into every session through the user-level CLAUDE.md.
+  # A project file (web's CLAUDE.local.md) importing a path outside the repo
+  # makes Claude Code show an approval prompt at startup, which stalls the
+  # remote-control sessions. The user-level file has no such check.
+  USER_CLAUDE_MD="$CLAUDE_HOME/CLAUDE.md"
+  if ! grep -qx '@/workspaces/wiki/WIKI.md' "$USER_CLAUDE_MD" 2>/dev/null; then
+    printf '\n@/workspaces/wiki/WIKI.md\n' >> "$USER_CLAUDE_MD"
+  fi
+  # Older installs put the import in web's CLAUDE.local.md; remove it there.
+  if [ -f /workspaces/web/CLAUDE.local.md ] && grep -qx '@/workspaces/wiki/WIKI.md' /workspaces/web/CLAUDE.local.md; then
+    sed -i -e '\|^@/workspaces/wiki/WIKI\.md$|d' -e '/^# Personal$/d' /workspaces/web/CLAUDE.local.md
+    grep -q '[^[:space:]]' /workspaces/web/CLAUDE.local.md || rm -f /workspaces/web/CLAUDE.local.md
   fi
 
   # SessionStart pulls the wiki and reports its state; Stop commits and pushes
