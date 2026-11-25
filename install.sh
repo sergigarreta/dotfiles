@@ -29,31 +29,16 @@ bash "$DOTFILES_DIR/claude/install.sh"
 #
 # The Roverspace's own GitHub login (the `gh auth git-credential` helper in
 # ~/.gitconfig) can read and push sergigarreta/llm-wiki, so no token is needed.
-# WIKI_REPO_TOKEN (fine-grained PAT, Contents: read+write) still takes over when
-# set, e.g. as a Coder user secret.
 echo "Setting up research wiki..."
 CLAUDE_SETTINGS="$CLAUDE_HOME/settings.json"
-# The token helper reads WIKI_REPO_TOKEN at call time, so the PAT never lands in
-# .git/config. It goes on the URL-scoped key because a URL-scoped helper beats a
-# generic one, and the empty value first resets the inherited helper list.
-WIKI_CRED_HELPER='!f() { echo username=x-access-token; echo "password=$WIKI_REPO_TOKEN"; }; f'
-wiki_git() {
-  if [ -n "${WIKI_REPO_TOKEN:-}" ]; then
-    git -c credential.https://github.com.helper= \
-        -c credential.https://github.com.helper="$WIKI_CRED_HELPER" "$@"
-  else
-    git "$@"
-  fi
-}
 if [ ! -d "$WIKI/.git" ]; then
-  wiki_git clone https://github.com/sergigarreta/llm-wiki "$WIKI" || \
-    echo "wiki clone failed — check the GitHub login (gh auth status) or WIKI_REPO_TOKEN." >&2
+  git clone https://github.com/sergigarreta/llm-wiki "$WIKI" || \
+    echo "wiki clone failed — check the GitHub login (gh auth status)." >&2
 fi
 if [ -d "$WIKI/.git" ]; then
-  if [ -n "${WIKI_REPO_TOKEN:-}" ]; then
-    git -C "$WIKI" config --replace-all credential.https://github.com.helper ""
-    git -C "$WIKI" config --add credential.https://github.com.helper "$WIKI_CRED_HELPER"
-  fi
+  # Older installs wrote a WIKI_REPO_TOKEN helper into this clone's config.
+  # Drop it so git falls back to the Roverspace login.
+  git -C "$WIKI" config --unset-all credential.https://github.com.helper || true
   git -C "$WIKI" pull --rebase --autostash --quiet || true
 
   # Skill symlinked out of the wiki repo, so the procedures are versioned with
@@ -81,17 +66,9 @@ if [ -d "$WIKI/.git" ]; then
   echo "Research wiki ready at $WIKI."
 fi
 
-# The Roverspace GitHub login already pushes to this repo. DOTFILES_REPO_TOKEN,
-# when set, takes over with the same token-helper pattern as the wiki above.
-echo "Configuring dotfiles push auth..."
-DOTFILES_CRED_HELPER='!f() { echo username=x-access-token; echo "password=$DOTFILES_REPO_TOKEN"; }; f'
-if [ -z "${DOTFILES_REPO_TOKEN:-}" ]; then
-  echo "DOTFILES_REPO_TOKEN not set — using the Roverspace GitHub login for dotfiles pushes."
-else
-  git -C "$DOTFILES_DIR" config --replace-all credential.https://github.com.helper ""
-  git -C "$DOTFILES_DIR" config --add credential.https://github.com.helper "$DOTFILES_CRED_HELPER"
-  echo "dotfiles repo ready to push at $DOTFILES_DIR."
-fi
+# The Roverspace GitHub login already pushes to this repo. Older installs wrote
+# a DOTFILES_REPO_TOKEN helper into this clone's config; drop it.
+git -C "$DOTFILES_DIR" config --unset-all credential.https://github.com.helper || true
 
 echo "Registering Roverspace in Statsig segment..."
 bash "$DOTFILES_DIR/statsig-register-workspace.sh" || true

@@ -105,17 +105,13 @@ git -C "$DOTFILES" commit -m "<message>"
 git -C "$DOTFILES" push
 ```
 
-If `DOTFILES_REPO_TOKEN` is set (a Coder user secret), `install.sh` configures
-this clone's URL-scoped credential helper to read it from the environment at call
-time, so the token never lands in `.git/config` or the remote URL.
-
 ### Handling tokens — hard rules
 
 - **Never print, echo, `env`-dump, log, or interpolate a token.** Do not embed
   one in a remote URL like `https://x-access-token:$TOKEN@github.com/...`; that
   value would be written to `.git/config` and shown in `git remote -v`.
 - To check whether one exists, test emptiness only:
-  `[ -n "${DOTFILES_REPO_TOKEN:-}" ] && echo present || echo missing`
+  `[ -n "${SERGI_STATSIG_CONSOLE_API_KEY:-}" ] && echo present || echo missing`
 - Never copy a token into another repo, a script, an MCP call, a Jira ticket,
   or a PR body.
 - The same rules apply to `SERGI_STATSIG_CONSOLE_API_KEY`, the Statsig Console API key
@@ -132,8 +128,7 @@ printf %s "$VALUE" | coder secret create <name> --env <ENV_VAR_NAME>
 
 ### If the push fails
 
-1. `gh auth status` must show the Roverspace login. A 403 means that login (or
-   `DOTFILES_REPO_TOKEN`, if set) lacks **Contents: read and write** on
+1. `gh auth status` must show the Roverspace login. A 403 means that login lacks **Contents: read and write** on
    `sergigarreta/dotfiles`; the user has to fix it in GitHub.
 
 ## Applying changes
