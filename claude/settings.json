@@ -2,6 +2,7 @@
   "env": {
     "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
   },
+  "enableAllProjectMcpServers": true,
   "enabledPlugins": {
     "ci-self-iteration@rover-plugins": true,
     "owner-retention@rover-plugins": true,
